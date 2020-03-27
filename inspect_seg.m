@@ -4,7 +4,7 @@ function [output,outputsummary] = inspect_seg(img,gradechoinv,mask,kernel,option
 %assumes that each voxel is associated with a single cluster, and each
 %cluster has an associated spectrum
 %
-% INPUTS:
+% REQUIRED INPUTS:
 %
 % img - either a single image, a cell of multiple images, or file path to a
 % single nifti image. Each image has dimension [dimx dimy dimz encodings]. 
@@ -22,6 +22,15 @@ function [output,outputsummary] = inspect_seg(img,gradechoinv,mask,kernel,option
 % must have dimension [dimx dimy dimz] - i.e. matching the first three
 % dimensions of the corresponding image.
 %
+% kernel - string specifying the choice of kernel, which relates
+% the MR acquisition parameters to the MR signal. For example:
+% - 'DT2' for diffusion-T2, for which the kernel equation 
+%   is exp(-b*D)*exp(-TE/t2). 
+% - 'T1' for T1 inversion recovery, for which the kernel equation 
+%   is abs(1-2*exp(-TI/t1) + exp(-TR/t1)).
+%
+% OPTIONAL INPUTS:
+%
 % options - algorithm options
 %
 %
@@ -31,7 +40,7 @@ function [output,outputsummary] = inspect_seg(img,gradechoinv,mask,kernel,option
 %
 %
 % LICENSE
-% <inspect toolbox for analysis of multi-contrast MRI data>
+% <inspect toolbox for qMRI analysis>
 % Copyright (C) <2020>  <Paddy J. Slator, p.slator@ucl.ac.uk>
 %
 % This program is free software: you can redistribute it and/or modify
@@ -61,53 +70,10 @@ elseif nargin == 5 %amend any user defined options
     options = append_options(options,default_options);
 end
 
-
-% %update the saving options to reflect the user changes
-% if options.save
-%     %save everything in its own directory
-%     if ~isfield(options,'dirname')
-%         dirname = ['nclus_' num2str(options.nclus)  ...
-%             '_maxiter_' num2str(options.maxiter) ...
-%             '_alpha_' num2str(options.ILT.alpha) ...
-%             '_init_' num2str(options.init)];
-%         
-%         options.dirname = dirname;
-%     end
-%     
-%     %use pwd if no directory specified
-%     if ~isfield(options,'save_path')
-%         options.save_path = [pwd '/'];
-%     end
-%           
-%     %give the image a name
-%     if ~isfield(options,'scan_names')
-%         if ~isempty(imgfilename) %get the image filename in a nice format
-%             if ~iscell(imgfilename)
-%                 %remove any full path stuff
-%                 [~,imgfilename] = fileparts(imgfilename);
-%                 %remove nifti extensions
-%                 options.scan_names{1} = remove_ext_from_nifti(imgfilename);
-%             else
-%                 for i=1:length(imgfilename) %loop over all filenames
-%                     %remove any full path stuff
-%                     [~,imgfilename{i}] = fileparts(imgfilename{i});
-%                     %remove nifti extensions
-%                     options.scan_names{i} = remove_ext_from_nifti(imgfilename{i});
-%                 end
-%             end
-%             
-%         else
-%             options.scan_names{1} = 'img';
-%         end
-%     end
-%     
-%       
-% end
-
-
 %print the options that are going to be used
 options
 options.ILT
+
 if options.save
     %print save directory, and create it if it doesn't exist
     if exist([options.save_path options.dirname], 'dir')
@@ -128,22 +94,9 @@ if ischar(gradechoinv)%check if gradechoinv is a path to a file
 end
 
 
-%% calculate the grid on which to estimate the diffusion/relaxometry spectrum
-
-% %unpack some other stuff
-% Nk1 = options.ILT.Nk1;
-% Nk2 = options.ILT.Nk2;
-% Nk = Nk1*Nk2;
-% if isfield(options.ILT,'Nk3')
-%     Nk3 = options.ILT.Nk3;
-%     Nk = Nk1*Nk2*Nk3;
-% end
 
 
-%K = zeros(Nmeas, prod(Nk));
-%grid = getkernelgrid(options);
-
-%get the kernel dictionary values by doing a dummy fit to the first voxel
+%% get the kernel dictionary values by doing a dummy fit to the first voxel
 disp('Calculating the kernel dictionary for all ILT fits.')
 tic;
 %this turns off the actual ILT calculation

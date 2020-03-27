@@ -1,10 +1,10 @@
 function output = inspect_map(img,gradechoinv,mask,kernel,options)
 
 %inspect continuous mapping version
-%assumes that the signal from each voxel is a weighted sum of contributions
-%from different spectra
+%assumes that the signal from each voxel is a weighted sum of 
+%contributions from a set of canonicial basis spectra
 
-% INPUTS:
+% REQUIRED INPUTS:
 %
 % img - either a single image, a cell of multiple images, or file path to a
 % single nifti image. Each image has dimension [dimx dimy dimz encodings]. 
@@ -21,6 +21,15 @@ function output = inspect_map(img,gradechoinv,mask,kernel,options)
 % Will be used to choose the voxels in which to fit the model. The mask
 % must have dimension [dimx dimy dimz] - i.e. matching the first three
 % dimensions of the corresponding image.
+%
+% kernel - string specifying the choice of kernel, which relates
+% the MR acquisition parameters to the MR signal. For example:
+% - 'DT2' for diffusion-T2, for which the kernel equation 
+%   is exp(-b*D)*exp(-TE/t2). 
+% - 'T1' for T1 inversion recovery, for which the kernel equation 
+%   is abs(1-2*exp(-TI/t1) + exp(-TR/t1)).
+%
+% OPTIONAL INPUTS:
 %
 % options - algorithm options
 %
@@ -87,7 +96,6 @@ if ischar(gradechoinv)%check if gradechoinv is a path to a file
 end
 
 
-
 %% unpack a few well-used options
 
 %number of spectral components to fit
@@ -104,15 +112,27 @@ maxk = options.ILT.maxk;
 
 
 
-
 %% get the kernel dictionary values by doing a dummy fit to the first voxel
+
+%this turns off the actual ILT calculation
+options.ILT.onILT = 0; 
 ILT_output_test = ILT(allimg(1,:)', gradechoinv, options.ILT);
+%store the values for subsequent ILT calls
+options.ILT.K = ILT_output_test.K;
+options.ILT.grid = ILT_output_test.grid;
+if options.ILT.reg
+    options.ILT.Kalpha = ILT_output_test.Kalpha;
+end
+%extract dictionary values required for (non-ILT) calculations
 K = ILT_output_test.K;
 if options.ILT.reg
     Kalpha = ILT_output_test.Kalpha;
 else
     Kalpha = K;
 end
+%normal fitting for all subsequent calls
+options.ILT.onILT=1;
+
 
 
 
@@ -505,7 +525,7 @@ if onF
     spectra.F = F;
     spectra.w = w;   
 
-    if isfield(options,'save')
+    if isfield(options,'save') %save the spectra as a mat file
         if options.save
             save([options.save_path options.dirname '/spectra_' num2str(ncomp) '_comp_' strjoin(options.scan_names,'_')],'spectra');
         end

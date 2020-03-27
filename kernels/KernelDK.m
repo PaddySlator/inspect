@@ -1,5 +1,5 @@
 function S = KernelDK(params,gradechoinv)
-%kernel for isotropic diffusivity
+%kernel for isotropic diffusivity with kurtosis
 
 [~, b, ~, ~, ~] = unpack_gradechoinv(gradechoinv);
 

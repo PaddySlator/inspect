@@ -30,7 +30,7 @@ function weights = inspect_map_weights_update(allimg,currentweights,Fcomp,Kalpha
 %
 %
 % LICENSE
-% <inspect toolbox for analysis of multi-contrast MRI data>
+% <inspect toolbox for qMRI analysis>
 % Copyright (C) <2020>  <Paddy J. Slator, p.slator@ucl.ac.uk>
 %
 % This program is free software: you can redistribute it and/or modify

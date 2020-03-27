@@ -63,23 +63,6 @@ vfimg = zeros([dim ncomp]);
 simimg = zeros([dim size(gradechoinv,1)]);
 
 
-% %set volume fractions across image
-% vfimg(1:3,:,:,1) = 0.75;
-% vfimg(1:3,:,:,2) = 0.25;
-% vfimg(1:3,:,:,3) = 0;
-%
-% vfimg(4:8,:,:,1) = 0.5;
-% vfimg(4:8,:,:,2) = 0.25;
-% vfimg(4:8,:,:,3) = 0.25;
-%
-% %vfimg(7:8,:,:,1) = 0;
-% %vfimg(7:8,:,:,2) = 1;
-% %vfimg(7:8,:,:,3) = 0;
-%
-% vfimg(9:10,:,:,1) = 0.0;
-% vfimg(9:10,:,:,2) = 0.25;
-% vfimg(9:10,:,:,3) = 0.75;
-
 
 %these are a bit more interesting!
 %set volume fractions across image
@@ -94,64 +77,8 @@ vfimg(:,:,:,4) = triu(vfimg(:,:,:,4));
 
 
 
-
-
-
-%even more interesting! loads of shapes, some with gradients, some solid blocks!
-%circle
-
-%square
-% squarexpos = 5:15;
-% squareypos = 5:15;
-% vfimg(squarexpos,squareypos,:,1) = 0.5;
-% vfimg(squarexpos,squareypos,:,2) = 0.25;
-% vfimg(squarexpos,squareypos,:,3) = 0.5;
-%
-% squarexpos = 20:30;
-% vfimg(squarexpos,squareypos,:,1) = 0.1;
-% vfimg(squarexpos,squareypos,:,2) = 0.1;
-% vfimg(squarexpos,squareypos,:,3) = 0.8;
-%
-% squarexpos = 35:45;
-% vfimg(squarexpos,squareypos,:,1) = 0.1;
-% vfimg(squarexpos,squareypos,:,2) = 0.8;
-% vfimg(squarexpos,squareypos,:,3) = 0.1;
-
-% = repmat(linspace(0,1,10), [1 5])';
-% vfimg(:,:,:,2) = repmat(linspace(1,0,10), [1 5])';
-% vfimg(:,:,:,3) = repmat(linspace(0,0.5,10), [1 5])';
-
-
-
-
-%do some lines of different volume fractions
-% comp1vfs = [0 0 0 0.25 0.25 0.25 0.25 0.5 0.5 0.5 0.75 0.75 ];
-% comp2vfs = [0.25 0.5 0.75 0.25 0.25 0.75 0 0 0.5 0.25 0.25 0];
-% comp3vfs = [0.75 0.5 0.25 0.5 0.5 0 0.75 0.5 0 0.25 0 0.25];
-%
-% compwidth = 5;
-% for i=1:dim(1)/compwidth
-%     vfimg(:, compwidth*(i-1)+1 : compwidth*i,:, 1 ) = comp1vfs(i);
-%     vfimg(:, compwidth*(i-1)+1 : compwidth*i,:, 2 ) = comp2vfs(i);
-%     vfimg(:, compwidth*(i-1)+1 : compwidth*i,:, 3 ) = comp3vfs(i);
-% end
-
-
 %normalise
 vfimg = vfimg./sum(vfimg,4);
-
-
-
-%randomly sample spectral volume fractions them all
-% vfimg = rand(size(vfimg));
-% %normalise
-% for x=1:dim(1)
-%     for y=1:dim(2)
-%         for z=1:dim(3)
-%             vfimg(x,y,z,:) = vfimg(x,y,z,:)./sum(vfimg(x,y,z,:)) ;
-%         end
-%     end
-% end
 
 
 for x=1:dim(1)
@@ -184,21 +111,9 @@ end
 [simimgvox, voxind] = image_to_voxel(simimg);
 
 
-denoise = 0;
-if denoise
-    nbins=10;
-    [denoised_simimgvox, snoise, nsig] = MPmoments(simimgvox,nbins);
 
-    %put denoised back into image form
-    denoised_simimg = voxel_to_image(denoised_simimgvox,...
-        voxind,...
-        dim);
 
     rawsimimg = simimg;
-    simimg = denoised_simimg;
-else
-    rawsimimg = simimg;
-end
 
 %% set up everything for saving
 
@@ -246,46 +161,22 @@ end
 %% inspect continuous version
 mask = ones(dim);
 
-
-
-
-%inspect_options.ILT  = default_ILT_options('DT2');
-%for the initial mean fit
-%inspect_options.ILT_mean = default_ILT_options('DT2');
-
-%inspect_options.n_comp = 4;
-
-%inspect_options.maxiter = 2 ;
-%inspect_options.init = 'meanspectrum';
-
-%inspect_options.weightstol = 10^-3;
-
-%inspect_options.onF = 1;
-%inspect_options.onweights = 1;
-
-%inspect_options.save = saveon;
-%inspect_options.save_path = figuredir;
-%inspect_options.dirname = dir_string;
-%inspect_options.scan_names = {''};
-
-%inspect_options.relabel = 0;
-
 inspect_options.save=0;
 inspect_options.maxiter=2;
 
-rawsiminspectmap = inspect_map(rawsimimg,gradechoinv,mask,'DT2',inspect_options);
-
-if denoise
-    inspect_options.dirname = [dir_string(1:end-1) '_denoised/' ];
-    siminspectmap = inspect_map(simimg,gradechoinv,mask,inspect_options);
-end
-
-
-
+siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
 
 
 
 %% fit the spectrum to each voxel individually
+
+options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
+options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+
+simvoxfit = fit_vox_spectra(simimg,gradechoinv,mask,'DT2',options);
+
+
+
 ILT_options.Nk1=50;
 ILT_options.Nk2=50;
 

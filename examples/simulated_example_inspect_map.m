@@ -54,7 +54,7 @@ spectparams.D = [0.0002 0.003 0.05 0.2];
 %spectparams.T2 = [0.03 0.08];
 %spectparams.D = [0.002 0.02];
 
-simoptions.SNR = 200;
+simoptions.SNR = 25;
 simoptions.noisetype = 'rician';
 
 ncomp = length(spectparams.T2);
@@ -111,9 +111,7 @@ end
 [simimgvox, voxind] = image_to_voxel(simimg);
 
 
-
-
-    rawsimimg = simimg;
+rawsimimg = simimg;
 
 %% set up everything for saving
 
@@ -176,67 +174,7 @@ options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
 simvoxfit = fit_vox_spectra(simimg,gradechoinv,mask,'DT2',options);
 
 
-
-ILT_options.Nk1=50;
-ILT_options.Nk2=50;
-
-ILT_options.mink1 = 2 * 10^-4;
-ILT_options.maxk1 = 5000 * 10^-3;
-ILT_options.mink2 = 10 ;
-ILT_options.maxk2 = 150;
-
-ILT_options.alpha = 0;
-
-Vfvoxelwise = zeros([dim ncomp]);
-
-l=1;
-for x=1:dim(1)
-    for y=1:dim(2)
-        for z=1:dim(3)
-            sig = squeeze(simimg(x,y,z,:));
-            %output.(change{1}){i}{j}{k}{x,y,z} = ILT_2D(sig, gradechoinv,ILT_options);
-
-            %don't store this because it becomes massive
-            output = ILT_2D(sig, gradechoinv,ILT_options);
-            %calculate vf map
-
-            spectparams.T2 = 10^3*[0.05 0.06 0.07 0.08] ;
-            spectparams.D = [0.0002 0.003 0.05 0.2];
-
-
-
-            boundadc = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
-            boundt2 = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
-
-            %boundadc = [0 0.01;0.01 0.06; 0.06 10];
-            %boundt2 = [0 0.065;0.065 0.075; 0.075 0.2];
-
-
-
-
-            Vfvoxelwise(x,y,z,:) = integrate_spectrum_2D(output,boundadc,boundt2);
-
-            disp(['completed voxel ' num2str(l) ' of ' num2str(prod(dim))])
-            l=l+1;
-        end
-
-    end
-end
-
-
-
-
-%make voxelwise spectrum map into nifti
-%Vfvoxelwisenii = make_nii(Vfvoxelwise);
-
-
-if saveon
-    niftiwrite(Vfvoxelwise, [figuredir dir_string 'Vfvoxelwise.nii.gz']);
-    %save_nii(Vfvoxelwisenii, [figuredir dir_string 'Vfvoxelwise.nii.gz']);
-end
-
-%niftiwrite(Vfvoxelwise, [figuredir dir_string 'Vfvoxelwisematlab.nii.gz']);
-
+   
 
 
 
@@ -244,13 +182,13 @@ end
 %% plot the output
 
 %get the grid to plot the spectra on
-grid = getkernelgrid(rawsiminspectmap.options.ILT);
+grid = getkernelgrid(siminspectmap.options.ILT);
 %get the output spectra
-Fcomp = rawsiminspectmap.iter{end}{end}.Fcomp;
+Fcomp = siminspectmap.iter{end}{end}.Fcomp;
 %get the output voxelwise spectral weights
-imgweights = rawsiminspectmap.iter{end}{end}.imgweights;
+imgweights = siminspectmap.iter{end}{end}.imgweights;
 
-for i=1:rawsiminspectmap.options.ncomp
+for i=1:siminspectmap.options.ncomp
     figure;hold on;
     contour(grid{2},grid{1},Fcomp{i})
     
@@ -262,10 +200,9 @@ for i=1:rawsiminspectmap.options.ncomp
     ylabel('ADC (mm^2/s)')
 end
 
-
 %
 figure; hold on;
-subfigdim = [3 rawsiminspectmap.options.ncomp];
+subfigdim = [3 siminspectmap.options.ncomp];
 maporder = 1:subfigdim(2);
 %cmax = [1 0.5 0.5];
 
@@ -370,51 +307,55 @@ end
 
 %% fit inspect mapping version
 
-ILT_options = default_ILT_options('D');
+% ILT_options = default_ILT_options('D');
+% 
+% ILT_options.reg = 0;
+% %regularisation parameter
+% ILT_options.alpha = 0;
+% 
+% %regularisation for the mean fit
+% inspect_options.ILT_mean = ILT_options;
+% 
+% %regularisation for the inspect map
+% inspect_options.ILT = ILT_options;
+% 
+% inspect_options.n_comp = 4;
+% 
+% inspect_options.maxiter = 2 ;
+% inspect_options.init = 'random';
+% inspect_options.init = 'kmeans';
+% inspect_options.init = 'meanspectrum';
+% %inspect_options.init = 'user';
+% 
+% inspect_options.parallel = 0;
+% 
+% inspect_options.onhill = 0;
+% inspect_options.fmincon = 1;
+% inspect_options.updateF = 0;
+% 
+% ILT_options.reg = 0;
+% %regularisation parameter
+% ILT_options.alpha = 0;
+% 
+% 
+% inspect_options.weightstol = 10^-3;
+% 
+% 
+% inspect_options.onF = 1;
+% inspect_options.onweights = 1;
+% 
+% inspect_options.save = saveon;
+% inspect_options.save_path = figuredir;
+% inspect_options.dirname = dir_string;
+% inspect_options.scan_names = {''};
+% 
+% inspect_options.relabel = 0;
 
-ILT_options.reg = 0;
-%regularisation parameter
-ILT_options.alpha = 0;
+D_siminspectmap = inspect_map(D_simimg,gradechoinv,mask,'D');
 
-%regularisation for the mean fit
-inspect_options.ILT_mean = ILT_options;
+%fit voxelwise
+D_voxfit = fit_vox_spectra(D_simimg,gradechoinv,mask,'D');
 
-%regularisation for the inspect map
-inspect_options.ILT = ILT_options;
-
-inspect_options.n_comp = 4;
-
-inspect_options.maxiter = 2 ;
-inspect_options.init = 'random';
-inspect_options.init = 'kmeans';
-inspect_options.init = 'meanspectrum';
-%inspect_options.init = 'user';
-
-inspect_options.parallel = 0;
-
-inspect_options.onhill = 0;
-inspect_options.fmincon = 1;
-inspect_options.updateF = 0;
-
-ILT_options.reg = 0;
-%regularisation parameter
-ILT_options.alpha = 0;
-
-
-inspect_options.weightstol = 10^-3;
-
-
-inspect_options.onF = 1;
-inspect_options.onweights = 1;
-
-inspect_options.save = saveon;
-inspect_options.save_path = figuredir;
-inspect_options.dirname = dir_string;
-inspect_options.scan_names = {''};
-
-inspect_options.relabel = 0;
-
-D_siminspectmap = inspect_map(D_simimg,gradechoinv,mask,inspect_options);
 
 
 
@@ -463,152 +404,25 @@ for x=1:dim(1)
     end
 end
 
-%% fit the ILT voxelwise
-
-ILT_options = default_ILT_options('DT2T1');
-
-DT2T1_voxoutput = cell(dim);
-
-l=1;
-for x=1:dim(1)
-    for y=1:dim(2)
-        for z=1:dim(3)  
-            
-            sig = squeeze(DT2T1_simimg(x,y,z,:));
-            %output.(change{1}){i}{j}{k}{x,y,z} = ILT_2D(sig, gradechoinv,ILT_options);
-
-            tic;
-            %don't store this because it becomes massive
-            DT2T1_voxoutput{x,y,z} = ILT(sig, gradechoinv,ILT_options);
-            time=toc;
-            
-            disp(['voxel ' num2str(l) ' of ' num2str(prod(dim)) ', it took ' num2str(time) ' seconds.'])
-            l=l+1;
-        end
-    end
-end
-            
-
-%%
-
-disp('want to do some default settings!!')
-
-ILT_options = default_ILT_options('DT2T1');
-
-ILT_options.reg = 0;
-%regularisation parameter
-ILT_options.alpha = 0;
+%% fit the ILT voxelwise and continuous inspect 
 
 
-%regularisation for the mean fit
-inspect_options.ILT_mean = ILT_options;
+%options.nSROI = 4;
+%options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
+%options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+%options.sROI{3} = [0 500;500 1000;1000 2000; 2000 5000];
 
+simvoxfit = fit_vox_spectra(DT2T1_simimg,gradechoinv,mask,'DT2T1');
 
-%regularisation for the inspect map
-inspect_options.ILT = ILT_options;
-
-
-inspect_options.n_comp = 4;
-
-inspect_options.maxiter = 1 ;
-inspect_options.init = 'meanspectrum';
-
-inspect_options.fmincon = 1;
-
-inspect_options.weightstol = 10^-3;
-
-inspect_options.onF = 1;
-inspect_options.onweights = 1;
-
-inspect_options.save = saveon;
-
-disp('pretty sure it relabels anyway!')
-inspect_options.relabel = 0;
-
-
-DT2T1_siminspectmap = inspect_map(DT2T1_simimg,gradechoinv,mask,inspect_options);
+DT2T1_siminspectmap = inspect_map(DT2T1_simimg,gradechoinv,mask,'DT2T1');
 
 
 
-%% old stuff that might be useful
-
-%% simulate using spectra instead
-
-% %get rep spectra componenets
-% spectparams.T2 = [0.03 0.08];
-% spectparams.D = [0.002 0.02];
-%
-% spectparams.T2 = [0.06 0.10 0.14];
-% spectparams.D = [0.003 0.02 0.2];
-%
-%
-% spectparams.f = [1 0 0];
-% S1 = simulate_multiexp_signal(spectparams,gradechoinv,SNR);
-% spectparams.f = [0 1 0];
-% S2 = simulate_multiexp_signal(spectparams,gradechoinv,SNR);
-% spectparams.f = [0 0 1];
-% S3 = simulate_multiexp_signal(spectparams,gradechoinv,SNR);
-%
-%
-% output1 = ILT_2D(S1,gradechoinv,ILT_options);
-% output2 = ILT_2D(S2,gradechoinv,ILT_options);
-% output3 = ILT_2D(S3,gradechoinv,ILT_options);
-%
-% Fcomp{1} = output1.F;
-% Fcomp{2} = output2.F;
-% Fcomp{3} = output3.F;
-%
-% simimgspect = zeros([dim size(gradechoinv,1)]);
-%
-% l=1;
-% for x=1:dim(1)
-%     for y=1:dim(2)
-%         for z=1:dim(3)
-%             F = construct_spectrum_from_components(Fcomp, vfimg(x,y,z,:) );
-%
-%             S = simulate_spectrum_signal(F,gradechoinv,ILT_options,SNR);
-%
-%             simimgspect(x,y,z,:) = S;
-%
-%             disp(['voxel ' num2str(l) ' of ' num2str(prod(dim)) ' finished'])
-%             l=l+1;
-%         end
-%     end
-% end
 
 
 
-%% test code that puts together spectral components
-% %grid for calculating the spectrum on
-% [W1,W2] = meshgrid(w1,w2);
-%
-% mu{1} = [w1(25) w2(25)];
-% sigma{1} = [0.00001 0; 0 0.0001];
-%
-% Fcomp{1} = mvnpdf([W1(:) W2(:)], mu{1}, sigma{1});
-% Fcomp{1} = reshape(Fcomp{1}, ILT_options.Nk2, ILT_options.Nk1);
-%
-%
-% i=2;
-% mu{i} = [w1(10) w2(10)];
-% sigma{i} = [0.0000001 0; 0 0.0001];
-% Fcomp{i} = mvnpdf([W1(:) W2(:)], mu{i}, sigma{i});
-% Fcomp{i} = reshape(Fcomp{i}, ILT_options.Nk2, ILT_options.Nk1);
-%
-%
-% for i=1:2
-%     figure;hold on;
-%     contour(w2,w1,Fcomp{i});
-%     set(gca, 'XScale', 'log')
-%     set(gca, 'YScale', 'log')
-% end
-%
-%
-%
-% %put the components together
-% F = construct_spectrum_from_components(Fcomp,[0.5 0.5]);
-%
-% figure; hold on;
-% contour(w2,w1,F);
-% set(gca, 'XScale', 'log')
-% set(gca, 'YScale', 'log')
+
+
+
+
+

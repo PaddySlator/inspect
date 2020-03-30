@@ -1,6 +1,6 @@
-function options = default_options_fit_vox_spectra(kernel,imgfilename)
+function options = default_options_fit_vox_spectra(kernel,gradechoinv,imgfilename)
 
-if nargin == 1
+if nargin == 2
     imgfilename = [];
 end
 
@@ -8,39 +8,43 @@ options.kernel = kernel;
 
 
 %% ILT options
-options.ILT = default_ILT_options(kernel);
+options.ILT = default_ILT_options(kernel,gradechoinv);
 
 
 %% voxelwise integration options
-%initialisation of the voxelwise clustering
-%number of intergration regions (i.e. spectra ROIs)
-options.nSROI = 4;
 
-%default is to split the 
+%unpack some useful parameters 
 spectra_dim = length(options.ILT.Nk);
 mink = options.ILT.mink;
 maxk = options.ILT.maxk;
 
+
+%initialisation of the voxelwise clustering
+%number of integration regions (i.e. spectra ROIs) in each dim
+SROI_dim=2 * ones(spectra_dim,1);
+%total number of sROIs 
+options.nSROI = 2^spectra_dim;
+
 options.sROIbounds = cell(1,spectra_dim);
 
 %calculate the number of sROI boundaries in each dimension 
-SROI_dim = zeros(spectra_dim,1);
-for i=1:spectra_dim-1
-    %if the number of spectral dimensions doesn't divide the number
-    %of sROI exactly, then take the ceiling of all dimensions ...
-    SROI_dim(i) = ceil(options.nSROI / spectra_dim);
-end
-%.. except the last - take the floor
-SROI_dim(spectra_dim) = floor(options.nSROI / spectra_dim);
+% SROI_dim = zeros(spectra_dim,1);
+%  
+% for i=1:spectra_dim-1
+%     %if the number of spectral dimensions doesn't divide the number
+%     %of sROI exactly, then take the ceiling of all dimensions ...
+%     SROI_dim(i) = ceil(options.nSROI / spectra_dim);
+% end
+% %.. except the last - take the floor
+% SROI_dim(spectra_dim) = floor(options.nSROI / spectra_dim);
    
 for j=1:spectra_dim %loop through the kernel parameters
     %get the size of the sROIs for each parameter
     size_SROI(j) = (maxk(j) - mink(j))/SROI_dim(j);
 end
 
-
 for j=1:spectra_dim
-    for i=1:SROI_dim(j)
+    for i=1:SROI_dim(j)                
         %set the bounds for each kernel dimension
         options.sROIbounds{j}(i,:) = ...
             [mink(j)+(i-1)*size_SROI(j) mink(j)+i*size_SROI(j)];

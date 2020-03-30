@@ -1,6 +1,6 @@
-function options = default_options_inspect_seg(kernel,imgfilename)
+function options = default_options_inspect_seg(kernel,gradechoinv,imgfilename)
 
-if nargin == 1
+if nargin == 2
     imgfilename = [];
 end
 
@@ -19,7 +19,7 @@ options.weightstol = 10^-3;
 
 
 %% ILT (i.e. M-step) options
-options.ILT = default_ILT_options(kernel);
+options.ILT = default_ILT_options(kernel,gradechoinv);
 
 
 %% saving options

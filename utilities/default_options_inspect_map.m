@@ -1,6 +1,6 @@
-function options = default_options_inspect_map(kernel,imgfilename)
+function options = default_options_inspect_map(kernel,gradechoinv,imgfilename)
 
-if nargin == 1
+if nargin == 2
     imgfilename = [];
 end
 
@@ -12,7 +12,7 @@ options.init='meanspectrum';
 %number of compartments
 options.ncomp = 4;
 %maximum iterations
-options.maxiter = 10;
+options.maxiter = 2;
 %tolerance for convergence
 options.weightstol = 10^-3;
 %turn updates on/off for debugging
@@ -22,9 +22,9 @@ options.onweights = 1;
 options.relabel = 1;
 
 %% ILT options
-options.ILT = default_ILT_options(kernel);
+options.ILT = default_ILT_options(kernel,gradechoinv);
 %for the initial fit to the mean signal
-options.ILT_mean = default_ILT_options(kernel);
+options.ILT_mean = default_ILT_options(kernel,gradechoinv);
 
 
 

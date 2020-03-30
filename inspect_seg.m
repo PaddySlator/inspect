@@ -61,7 +61,7 @@ function [output,outputsummary] = inspect_seg(img,gradechoinv,mask,kernel,option
 %% unpack algorithm options
  
 %get the default options
-default_options = default_options_inspect_seg(kernel); 
+default_options = default_options_inspect_seg(kernel,gradechoinv,imgfilename); 
 
 if nargin < 5 %if no user defined options    
     options=default_options;

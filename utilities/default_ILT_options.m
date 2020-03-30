@@ -1,5 +1,5 @@
-function options = default_ILT_options(kernelname)
-%default options for the ILT given the kernel
+function options = default_ILT_options(kernelname,gradechoinv)
+%default options for the ILT given the kernel and acquisition protocol
 
 options.kernel = kernelname;
 
@@ -34,8 +34,22 @@ end
 
 %minimum and maximum values for the grid for each parameter
 %diffusivity
-min_grid.d = 2*10^-4;
-max_grid.d = 5;
+
+%get reasonable max and min values from the acquisition protocol
+
+[g, b, TE, TI, TR] = unpack_gradechoinv(gradechoinv);
+
+%get the unique non-zero b-values
+b = unique(b(b~=0));
+%heuristic choice of how far above/below the 1/min(b) to have the max/min D
+bcoeff = 5;
+min_grid.d = (1/bcoeff) * 1/max(b);
+max_grid.d = bcoeff * 1/min(b);
+
+
+
+%min_grid.d = 2*10^-4;
+%max_grid.d = 5;
 %max_grid.d = 0.005;
 %this needs to be lower if we are including kurtosis - otherwise dictionary
 %of signals goes to infinity - could improve by having "non-square"
@@ -49,16 +63,35 @@ min_grid.k=0;
 max_grid.k=1;
 
 %T2
-min_grid.t2 = 5;
-max_grid.t2 = 200;
+TE = unique(TE);
+%heuristic choice of how far above/below the min/max TE to have the max/min
+%T2
+TEmincoeff = 10;
+TEmaxcoeff = 1;
+
+min_grid.t2 = (1/TEmincoeff) * min(TE);
+max_grid.t2 = TEmaxcoeff * max(TE);
+
+%min_grid.t2 = 5;
+%max_grid.t2 = 200;
 
 %min_grid.t2 = 0.005;
 %max_grid.t2 = 0.2;
 
 
 %T1
-min_grid.t1 = 250;
-max_grid.t1 = 5000;
+%heuristic choice of how far above/below the min/max TI to have the max/min
+%T1
+TI = unique(TI);
+
+TImincoeff = 1;
+TImaxcoeff = 1;
+
+min_grid.t1 = (1/TImincoeff) * min(TI);
+max_grid.t1 = TImaxcoeff * max(TI);
+
+%min_grid.t1 = 250;
+%max_grid.t1 = 5000;
 
 %min_grid.t1 = 0.25;
 %max_grid.t1 = 5;

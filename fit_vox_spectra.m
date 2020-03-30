@@ -62,7 +62,7 @@ function [output,outputsummary] = fit_vox_spectra(img,gradechoinv,mask,kernel,op
 %% unpack algorithm options
  
 %get the default options
-default_options = default_options_fit_vox_spectra(kernel); 
+default_options = default_options_fit_vox_spectra(kernel,gradechoinv,imgfilename); 
 
 if nargin < 5 %if no user defined options    
     options=default_options;
@@ -125,7 +125,7 @@ nSROI = options.nSROI;
 spectvf = zeros([nvox nSROI]);
 
 for i=1:nvox
-    %calculate the spectra
+    %calculate the spectra    
     voxILT = ILT(allimg(i,:),gradechoinv,options.ILT);
     
     %calculate volume fraction map

@@ -1,117 +1,133 @@
 
+clear
+
+%set some options that are the same for all simulations
+
+%saving options
 saveon=0;
+inspect_options.save=saveon;
 
-%simulate a simple image where each voxel has an associated spectrum
-dim = [10 10 1];
-
-
-%load a placenta gradechoinv file
-gradechoinv = load('/Users/paddyslator/Dropbox/t2sdiff/pip0111/grad_echo_inv.txt');
-%want this in ms
-gradechoinv(:,5) = gradechoinv(:,5)*10^3;
-
-nmeas = size(gradechoinv,1);
+%noise level and type 
+SNR = 200;
+noisetype = 'rician';
 
 
-%make some spectral components
-ILT_options.Nk1=50;
-ILT_options.Nk2=50;
+%% Simulate volume fraction image.
+% Each voxel is the weighting of the corresponding 
+% canonical spectral component. All simulations use 
+% the same volume fraction image
 
-ILT_options.Nk = [50 50];
+%image dimension
+imgdim = [10 10 1];
+%define mask
+mask = ones(imgdim);
+%number of spectral components 
+ncomp = 4;
 
-ILT_options.mink1 = 2 * 10^-4;
-ILT_options.maxk1 = 5000 * 10^-3;
-ILT_options.mink2 = 10 * 10^-3;
-ILT_options.maxk2 = 150 * 10^-3;
-
-ILT_options.mink = [2*10^-4  10*10^-3];
-%ILT_options.maxk = [5000*10^-3  150*10^-3];
-ILT_options.maxk = [5000*10^-3  150*10^-3];
-
-ILT_options.reg = 0;
-ILT_options.alpha = 0;
-
-
-w1 = logspace(log10(ILT_options.mink1),log10(ILT_options.maxk1), ILT_options.Nk1);
-w2 = linspace(ILT_options.mink2,ILT_options.maxk2, ILT_options.Nk2);
-
-
-
-%simulate example spectrum
-%the T2 and D are the same, but each voxel has different volume fractions
-%of these components - the "canonical spectrum components" are
-spectparams.T2 = [0.06 0.07 0.08] ;
-
-spectparams.D = [0.002 0.02 0.1];
-
-
-spectparams.T2 = 10^3 * [0.05 0.06 0.07 0.08] ;
-
-spectparams.D = [0.0002 0.003 0.05 0.2];
-
-
-
-%spectparams.T2 = [0.03 0.08];
-%spectparams.D = [0.002 0.02];
-
-simoptions.SNR = 25;
-simoptions.noisetype = 'rician';
-
-ncomp = length(spectparams.T2);
-
-vfimg = zeros([dim ncomp]);
-simimg = zeros([dim size(gradechoinv,1)]);
-
-
-
-%these are a bit more interesting!
 %set volume fractions across image
-clear vfimg
-vfimg(:,:,:,1) = repmat(linspace(0,0.5,dim(1)), [dim(2) 1])';
-vfimg(:,:,:,2) = repmat(linspace(0,0.5,dim(1)),[dim(2) 1]);
+vfimg = zeros([imgdim ncomp]);
+vfimg(:,:,:,1) = repmat(linspace(0,0.5,imgdim(1)), [imgdim(2) 1])';
+vfimg(:,:,:,2) = repmat(linspace(0,0.5,imgdim(1)),[imgdim(2) 1]);
 vfimg(:,:,:,3) = abs(1 - sum(vfimg(:,:,:,1:2),4));
 vfimg(:,:,:,4) = vfimg(:,:,:,3);
-
 vfimg(:,:,:,3) = tril(vfimg(:,:,:,3),-1);
 vfimg(:,:,:,4) = triu(vfimg(:,:,:,4));
-
-
 
 %normalise
 vfimg = vfimg./sum(vfimg,4);
 
 
-for x=1:dim(1)
-    for y=1:dim(2)
-        for z=1:dim(3)
-            %simulate the volume fractions for this voxel
-%             %weightings for the vfs
-%             vfweights = [1 2 3]';
-%             f = vfweights .* rand(ncomp,1);
-%             %normalise so they sum to 1
-%             f = f./sum(f);
-%             vfimg(x,y,z,:) = f;
+%% Simulate a T2-D (equiv. T2*-D) experiment.
+% Canonical spectral component values and MR acquisition 
+% parameters are based on those in: 
+%
+% Slator et al., Combined diffusion?relaxometry MRI to identify 
+% dysfunction in the human placenta, MRM 2019.
+% https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27733
+%
 
+%load the placenta gradechoinv file
+gradechoinv_filename = 'inspect/examples/placenta_gradechoinv.txt';
+gradechoinv = load(gradechoinv_filename);
+
+%set the kernel option
+kernel.name = 'DT2';
+
+%define the canonical spectral components
+d = [0.0002 0.003 0.05 0.2]; %ADC
+t2 = [50 60 70 80]; %T2
+spectral_comp = [d;t2];
+
+%now simulate the image
+simimg = zeros([imgdim size(gradechoinv,1)]);%preallocate
+for x=1:imgdim(1) %loop over voxels
+    for y=1:imgdim(2)
+        for z=1:imgdim(3)            
             %get volume fractions for this voxel
-            spectparams.f = vfimg(x,y,z,:);
-
-            S0 = 1;
-
-            S = S0.*simulate_multiexp_signal(spectparams,gradechoinv,simoptions);
-
+            f = squeeze(vfimg(x,y,z,:)); 
+            %simulate the signal by summing each component's signal   
+            S=0;
+            for i=1:length(f) %loop over components                     
+                %parameters for this component in this voxel
+                kernel.params = spectral_comp(:,i);
+                S = S + f(i) * KernelMeas(kernel,gradechoinv);                                                              
+            end     
+            %add noise
+            S = add_noise(S,SNR,noisetype);
+            %assign to image
             simimg(x,y,z,:) = S;
         end
     end
 end
 
+%%% do the inspect and voxelwise fits %%%
+
+% fit inspect continuous version
+siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+
+
+% fit voxelwise spectra and integrate in spectral ROIs to get
+% volume fraction maps
+
+%set spectral ROIs
+clear options
+options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
+options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+
+%voxelwise fit
+simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',options);
+
+
+   
+%%% plot the output %%%
+
+%unpack some output variables
+%spectral grid
+grid = siminspectmap.options.ILT.grid;
+%output spectra
+Fcomp = siminspectmap.iter{end}{end}.Fcomp;
+%output voxelwise spectral weights
+imgweights = siminspectmap.iter{end}{end}.imgweights;
+
+%plot the spectral components 
+for i=1:siminspectmap.options.ncomp
+    figure;hold on;
+    contour(grid{2},grid{1},Fcomp{i})
+    
+    plot(spectral_comp(2,i),spectral_comp(1,i),'rx')
+    title(['Component ' num2str(i)])
+    legend({'InSpect fit','Ground Truth'})
+    set(gca, 'YScale', 'log');
+    xlabel('T2* (s)')
+    ylabel('ADC (mm^2/s)')
+end
+
+%plot a comparison of the volume fraction maps
+plot_map_vs_vox_sim(siminspectmap,simvoxfit,vfimg);
 
 
 
-%put image into voxel form
-[simimgvox, voxind] = image_to_voxel(simimg);
 
-
-rawsimimg = simimg;
 
 %% set up everything for saving
 
@@ -136,18 +152,10 @@ dir_string = [dir_string '/'];
 mkdir([figuredir dir_string]);
 
 
-
-%% save the ground truth as a nifti
-
-%make voxelwise spectrum map into nifti
-%Vfimgnii = make_nii(vfimg);
-
+% save the ground truth as a nifti
 if saveon
     niftiwrite(vfimg, [figuredir dir_string 'Vf_ground_truth.nii.gz'],'Compressed',true);
-    %save_nii(Vfimgnii, [figuredir dir_string 'Vf_ground_truth.nii.gz']);
 end
-
-
 
 %save the simulated image as nifti
 if saveon
@@ -156,270 +164,166 @@ end
 
 
 
-%% inspect continuous version
-mask = ones(dim);
 
-inspect_options.save=0;
-inspect_options.maxiter=2;
+%% D example - i.e. model-free IVIM
 
-siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
-
-
-
-%% fit the spectrum to each voxel individually
-
-options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
-options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
-
-simvoxfit = fit_vox_spectra(simimg,gradechoinv,mask,'DT2',options);
-
-
-   
-
-
-
-
-%% plot the output
-
-%get the grid to plot the spectra on
-grid = getkernelgrid(siminspectmap.options.ILT);
-%get the output spectra
-Fcomp = siminspectmap.iter{end}{end}.Fcomp;
-%get the output voxelwise spectral weights
-imgweights = siminspectmap.iter{end}{end}.imgweights;
-
-for i=1:siminspectmap.options.ncomp
-    figure;hold on;
-    contour(grid{2},grid{1},Fcomp{i})
-    
-    plot(spectparams.T2(i),spectparams.D(i),'rx')
-    title(['Component ' num2str(i)])
-    legend({'InSpect fit','Ground Truth'})
-    set(gca, 'YScale', 'log');
-    xlabel('T2* (s)')
-    ylabel('ADC (mm^2/s)')
-end
-
-%
-figure; hold on;
-subfigdim = [3 siminspectmap.options.ncomp];
-maporder = 1:subfigdim(2);
-%cmax = [1 0.5 0.5];
-
-for i=1:ncomp
-    %subtightplot(subfigdim(1),subfigdim(2),i)
-    subplot(subfigdim(1),subfigdim(2),i)
-    imagesc(imgweights{1}(:,:,1,maporder(i)))
-    
-    colorbar
-    %caxis([0 cmax(i)])
-    if i==1
-        ylabel('InSpect Maps')
-    end
-
-    %subtightplot(subfigdim(1),subfigdim(2),i+ncomp)
-    subplot(subfigdim(1),subfigdim(2),i + ncomp)
-    imagesc(vfimg(:,:,1,i))
-    colorbar;
-    if i==1
-        ylabel('Ground truth volume fraction')
-    end
-
-    %subtightplot(subfigdim(1),subfigdim(2),i + 2 * ncomp)
-    subplot(subfigdim(1),subfigdim(2),i + 2 * ncomp)
-    imagesc(Vfvoxelwise(:,:,:,maporder(i)))
-    colorbar
-    %caxis([0 cmax(i)])
-
-    if i==1
-        ylabel('Voxelwise Maps')
-    end
-    
-    
-    
-end
-
-set(gcf,'Position',[-56 1011 1261 677])
-
-
-return
-
-
-
-
-%% D example
-
-%simulate an IVIM image
-
-%define the protocol
-b = [0 50 100 300 600];
-
-b=0:3000;
+%define an IVIM-type protocol
+b = [0 50 100 200 300 400 600 800];
 b=repmat(b,[1 3]);
-
-gradechoinv = ones(length(b),5);
+%put it into gradechoinv format
+gradechoinv = ones(length(b),4);
 gradechoinv(:,4) = b;
-%TE
-gradechoinv(:,5) = 74;
 
-SNR=2000;
+%set the kernel option
+kernel.name = 'D';
 
 %simulate example spectrum
 %diffusivities
-D = [0.001 0.003 0.01 0.1];
-
-%simulate using the same volume fraction image
-D_simimg = zeros([dim size(gradechoinv,1)]);
-
-for x=1:dim(1)
-    for y=1:dim(2)
-        for z=1:dim(3)
-            %simulate the volume fractions for this voxel
-%             %weightings for the vfs
-%             vfweights = [1 2 3]';
-%             f = vfweights .* rand(ncomp,1);
-%             %normalise so they sum to 1
-%             f = f./sum(f);
-%             vfimg(x,y,z,:) = f;
-
+d = [0.001 0.003 0.01 0.1];
+spectral_comp = d;
+       
+%simulate the image
+D_simimg = zeros([imgdim size(gradechoinv,1)]);%preallocate
+for x=1:imgdim(1) %loops over voxels
+    for y=1:imgdim(2)
+        for z=1:imgdim(3)            
             %get volume fractions for this voxel
             f = vfimg(x,y,z,:);
-
-            S0 = 1;
-            
-            S = 0;
-            
-            for j=1:ncomp
-                S = S + f(j) * exp(-b * D(j));                  
-            end
-            
-            S = S0 .* S;
-            
+            %simulate the signal by summing each component's signal              
+            S = 0;            
+            for i=1:ncomp
+                %parameters for this component in this voxel
+                kernel.params = spectral_comp(:,i);               
+                S = S + f(i) * KernelMeas(kernel,gradechoinv);
+            end                        
+            %add noise
             S = add_noise(S,SNR,'rician');
-
+            %assign
             D_simimg(x,y,z,:) = S;
         end
     end
 end
 
 
+%%% do the fits %%%
 
+%continuous inspect 
+D_siminspectmap = inspect_map(D_simimg,gradechoinv,mask,'D',inspect_options);
 
-%% fit inspect mapping version
-
-% ILT_options = default_ILT_options('D');
-% 
-% ILT_options.reg = 0;
-% %regularisation parameter
-% ILT_options.alpha = 0;
-% 
-% %regularisation for the mean fit
-% inspect_options.ILT_mean = ILT_options;
-% 
-% %regularisation for the inspect map
-% inspect_options.ILT = ILT_options;
-% 
-% inspect_options.n_comp = 4;
-% 
-% inspect_options.maxiter = 2 ;
-% inspect_options.init = 'random';
-% inspect_options.init = 'kmeans';
-% inspect_options.init = 'meanspectrum';
-% %inspect_options.init = 'user';
-% 
-% inspect_options.parallel = 0;
-% 
-% inspect_options.onhill = 0;
-% inspect_options.fmincon = 1;
-% inspect_options.updateF = 0;
-% 
-% ILT_options.reg = 0;
-% %regularisation parameter
-% ILT_options.alpha = 0;
-% 
-% 
-% inspect_options.weightstol = 10^-3;
-% 
-% 
-% inspect_options.onF = 1;
-% inspect_options.onweights = 1;
-% 
-% inspect_options.save = saveon;
-% inspect_options.save_path = figuredir;
-% inspect_options.dirname = dir_string;
-% inspect_options.scan_names = {''};
-% 
-% inspect_options.relabel = 0;
-
-D_siminspectmap = inspect_map(D_simimg,gradechoinv,mask,'D');
-
-%fit voxelwise
-D_voxfit = fit_vox_spectra(D_simimg,gradechoinv,mask,'D');
+%voxelwise
+%set spectral ROIs
+clear options
+options.sROI{1} = [0 0.002;0.002 0.005; 0.005 0.05; 0.05 1];
+%do the fit
+D_simvoxfit = inspect_vox(D_simimg,gradechoinv,mask,'D',options);
 
 
 
+%%% plot the output %%%
 
+%unpack some output variables
+%spectral grid
+grid = D_siminspectmap.options.ILT.grid;
+%output spectra
+Fcomp = D_siminspectmap.iter{end}{end}.Fcomp;
+%output voxelwise spectral weights
+imgweights = D_siminspectmap.iter{end}{end}.imgweights;
 
+%plot the spectral components 
+for i=1:D_siminspectmap.options.ncomp
+    figure;hold on;
+    plot(grid{1},Fcomp{i})
+    
+    plot(spectral_comp(:,i),0,'rx')
+    
+    title(['Component ' num2str(i)])
+    legend({'InSpect fit','Ground Truth'})
+    set(gca, 'XScale', 'log');
+    xlabel('ADC (mm^2/s)')
+end
+
+%plot the maps
+plot_map_vs_vox_sim(D_siminspectmap,D_simvoxfit,vfimg);
 
 
 %% T1-T2-D example
 
-dim = [10 10 1];
+%simulate ZEBRA brain type experiment (e.g. MUDI challenge
+% http://cmic.cs.ucl.ac.uk/cdmri/challenge.html)
 
-gradechoinv = load('~/Dropbox/challenge/parameters_new.txt');
-gradechoinv(:,7) = 7500;
-%these are the other way around!
-gradechoinvtemp = gradechoinv;
-gradechoinv(:,5) = gradechoinvtemp(:,6);
-gradechoinv(:,6) = gradechoinvtemp(:,5);
+gradechoinv_filename = 'inspect/examples/mudi_gradechoinv.txt';
+gradechoinv = load(gradechoinv_filename);
 
+
+kernel.name = 'DT2T1';
+%the canonical spectral components
 d = [0.002 0.001 0.003 0.002];
-t2 = [100 100 150 150];
+t2 = [80 80 120 120];
 t1 = [500 1000 1500 2000];
 
-SNR = 10000;
+spectral_comp = [d;t2;t1];
 
-
-%simulate using the same volume fraction image
-DT2T1_simimg = zeros([dim size(gradechoinv,1)]);
-
-
-for x=1:dim(1)
-    for y=1:dim(2)
-        for z=1:dim(3)            
+%preallocate the simulated image
+DT2T1_simimg = zeros([imgdim size(gradechoinv,1)]);
+%simulate the signal over image voxels
+for x=1:imgdim(1)
+    for y=1:imgdim(2)
+        for z=1:imgdim(3)            
             %get volume fractions for this voxel
             f = squeeze(vfimg(x,y,z,:));                        
-               
+            %simulate the signal by summing each component's signal   
             S=0;
-            for i=1:length(f)
-                S = S + f(i)*(KernelD(d(i),gradechoinv)...
-                    .*KernelT2(t2(i),gradechoinv)...
-                    .*KernelT1inv(t1(i),gradechoinv));
-            end            
-    
+            for i=1:length(f) %loop over components                     
+                %parameters for this component in this voxel
+                kernel.params = spectral_comp(:,i);
+                S = S + f(i) * KernelMeas(kernel,gradechoinv);                                                              
+            end     
+            %add noise
             S = add_noise(S,SNR,'rician');
-                                         
+            %assign to image
             DT2T1_simimg(x,y,z,:) = S;
         end
     end
 end
 
-%% fit the ILT voxelwise and continuous inspect 
+% fit the ILT voxelwise and continuous inspect 
 
+%clear options
+clear options
+options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
+options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+options.sROI{3} = [0 500;500 1000;1000 2000; 2000 5000];
 
-%options.nSROI = 4;
-%options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
-%options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
-%options.sROI{3} = [0 500;500 1000;1000 2000; 2000 5000];
+DT2T1_simvoxfit = inspect_vox(DT2T1_simimg,gradechoinv,mask,kernel.name);
 
-simvoxfit = fit_vox_spectra(DT2T1_simimg,gradechoinv,mask,'DT2T1');
-
-DT2T1_siminspectmap = inspect_map(DT2T1_simimg,gradechoinv,mask,'DT2T1');
-
-
+DT2T1_siminspectmap = inspect_map(DT2T1_simimg,gradechoinv,mask,kernel.name,inspect_options);
 
 
 
+% plot the output
+
+%unpack some output variables
+%spectral grid
+grid = DT2T1_siminspectmap.options.ILT.grid;
+%output spectra
+Fcomp = DT2T1_siminspectmap.iter{end}{end}.Fcomp;
+%output voxelwise spectral weights
+imgweights = DT2T1_siminspectmap.iter{end}{end}.imgweights;
+
+%plot the spectral components 
+nproj = length(kernel.params);%get the number of projections/subplots
+for i=1:DT2T1_siminspectmap.options.ncomp
+    plot_multidim_spectrum(Fcomp{i},grid,kernel.name,spectral_comp(:,i))
+      
+    
+    title(['Component ' num2str(i)])
+    legend({'InSpect fit','Ground Truth'})
+    set(gca, 'XScale', 'log');
+    xlabel('ADC (mm^2/s)')
+end
+
+%plot the maps
+plot_map_vs_vox_sim(DT2T1_siminspectmap,DT2T1_simvoxfit,vfimg);
 
 
 

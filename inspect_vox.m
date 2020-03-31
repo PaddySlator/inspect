@@ -1,7 +1,13 @@
-function [output,outputsummary] = fit_vox_spectra(img,gradechoinv,mask,kernel,options)
+function [output,outputsummary] = inspect_vox(img,gradechoinv,mask,kernel,options)
 
-% fit spectrum voxelwise and calculate volume fraction maps 
-% by spectral integration in user defined regions
+% Fit spectrum voxelwise and calculate volume fraction maps 
+% by spectral integration in user defined regions.
+%
+% Reference (this is the earliest one I have found):
+% English,A.E. et al. Quantitative Two-Dimensional time 
+% Correlation Relaxometry.  MRM 22(2), 425?434 (dec 1991).  
+% https://doi.org/10.1002/mrm.1910220250
+%
 %
 % REQUIRED INPUTS:
 %
@@ -62,7 +68,7 @@ function [output,outputsummary] = fit_vox_spectra(img,gradechoinv,mask,kernel,op
 %% unpack algorithm options
  
 %get the default options
-default_options = default_options_fit_vox_spectra(kernel,gradechoinv,imgfilename); 
+default_options = default_options_inspect_vox(kernel,gradechoinv,imgfilename); 
 
 if nargin < 5 %if no user defined options    
     options=default_options;
@@ -114,12 +120,10 @@ options.ILT.onILT=1;
 %% unpack a few well-used options
 
 
-nSROI = options.nSROI;
+nSROI = size(options.sROI{1},1);
 
 
 %%
-
-
 
 %preallocate voxel-space spectral volume fraction image
 spectvf = zeros([nvox nSROI]);
@@ -127,10 +131,11 @@ spectvf = zeros([nvox nSROI]);
 for i=1:nvox
     %calculate the spectra    
     voxILT = ILT(allimg(i,:),gradechoinv,options.ILT);
-    
+            
     %calculate volume fraction map
-    spectvf(i,:) = integrate_vox_spectrum(voxILT.F,voxILT.grid,options.sROI);
+    spectvf(i,:) = integrate_vox_spectrum(voxILT.F,voxILT.grid,options.sROI);    
     
+    disp(['completed voxel ' num2str(i) ' of ' num2str(nvox)])
 end
    
 for i=1:nimg

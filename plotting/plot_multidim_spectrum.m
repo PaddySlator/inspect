@@ -1,5 +1,10 @@
-function plot_multidim_spectrum(F,grid,kernel)
+function plot_multidim_spectrum(F,grid,kernel,spectral_comp)
 
+if nargin == 3
+    plotgroundtruth = 0;
+else
+    plotgroundtruth = 1;
+end
 
 
 params = GetKernelParameterStrings(kernel);
@@ -9,7 +14,7 @@ ndim = length(grid);
 figure;hold on;
 
 if ndim == 1 %1D spectrum
-    plot(grid,F)
+    plot(grid{1},F)
     xlabel(params{1})
 elseif ndim == 2 %2D spectrum
     contour(grid{2},grid{1},F);
@@ -35,6 +40,7 @@ elseif ndim >= 3 %3D and above - need to plot projections
         dim2squeeze(dim2plot(i,:))=[];
                 
         Fproj=F;
+        dim2squeeze
         for j=dim2squeeze                
             %squeeze the spectrum in this dimension
             Fproj = sum(Fproj, j);
@@ -42,8 +48,12 @@ elseif ndim >= 3 %3D and above - need to plot projections
         Fproj = squeeze(Fproj);
           
         %plot this 2D projection       
-        subplot(1,nproj,i);axis square;
+        subplot(1,nproj,i);hold on;axis square;
         contour(grid{dim2plot(i,2)},grid{dim2plot(i,1)},Fproj)        
+        
+        if plotgroundtruth %plot the ground truth spectral component value
+            plot(spectral_comp(dim2plot(i,2)),spectral_comp(dim2plot(i,1)),'rx')
+        end
         
         xlabel(params{dim2plot(i,2)})
         ylabel(params{dim2plot(i,1)})

@@ -1,4 +1,4 @@
-function options = default_options_fit_vox_spectra(kernel,gradechoinv,imgfilename)
+function options = default_options_inspect_vox(kernel,gradechoinv,imgfilename)
 
 if nargin == 2
     imgfilename = [];
@@ -74,7 +74,7 @@ end
 options.save = 1;
 
 %directory name
-options.dirname = ['vox_spectra' ...
+options.dirname = ['inspect_vox' ...
     '_nSROI_' num2str(options.nSROI)  ...    
     '_alpha_' num2str(options.ILT.alpha)];    
 

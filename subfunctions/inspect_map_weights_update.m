@@ -56,7 +56,14 @@ ncomp = options.ncomp;
 nvox = size(allimg,1);
 
 %get 1/SNR for all voxels
-sigvec = estimate_sd(allimg,gradechoinv);  
+if strcmp(options.SNR, 'voxelwise')
+    sigvec = estimate_sd(allimg,gradechoinv);  
+elseif isscalar(options.SNR)
+    sigvec = ones(nvox,1) * (1/options.SNR);
+else
+    sigvec = options.SNR(:);
+end
+
 
 %get starting point for weights (use current weight if available)
 if isempty(currentweights)

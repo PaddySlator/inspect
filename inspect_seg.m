@@ -58,6 +58,14 @@ function [output,outputsummary] = inspect_seg(img,gradechoinv,mask,kernel,option
 [~,imgfilename,mask,nimg,allimg,imgind,voxind,nvox,nx,ny,nz] = inspect_preprocess_img(img,mask);
 
 
+%% extract the MR acqusition parameters 
+
+if ischar(gradechoinv)%check if gradechoinv is a path to a file
+    gradechoinvfilename = gradechoinv;
+    gradechoinv = importdata(gradechoinvfilename);
+end
+
+
 %% unpack algorithm options
  
 %get the default options
@@ -83,14 +91,6 @@ if options.save
         disp(['Created directory for saving results at: ' options.save_path options.dirname])
     end
     disp(['Output filenames will end in '  strjoin(options.scan_names,'_')])
-end
-
-
-%% extract the MR acqusition parameters 
-
-if ischar(gradechoinv)%check if gradechoinv is a path to a file
-    gradechoinvfilename = gradechoinv;
-    gradechoinv = importdata(gradechoinvfilename);
 end
 
 

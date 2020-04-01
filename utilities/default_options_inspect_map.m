@@ -20,6 +20,9 @@ options.onF = 1;
 options.onweights = 1;
 %choose whether to order the fitted components 
 options.relabel = 1;
+%estimate SNR by taking standard deviation of voxels
+options.SNR = 'voxelwise';
+
 
 %% ILT options
 options.ILT = default_ILT_options(kernel,gradechoinv);

@@ -40,7 +40,7 @@ elseif ndim >= 3 %3D and above - need to plot projections
         dim2squeeze(dim2plot(i,:))=[];
                 
         Fproj=F;
-        dim2squeeze
+  
         for j=dim2squeeze                
             %squeeze the spectrum in this dimension
             Fproj = sum(Fproj, j);

@@ -59,6 +59,14 @@ function output = inspect_map(img,gradechoinv,mask,kernel,options)
 [~,imgfilename,mask,nimg,allimg,imgind,voxind,nvox,nx,ny,nz] = inspect_preprocess_img(img,mask);
 
 
+%% extract the MR acqusition parameters 
+
+if ischar(gradechoinv)%check if gradechoinv is a path to a file
+    gradechoinvfilename = gradechoinv;
+    gradechoinv = importdata(gradechoinvfilename);
+end
+
+
 %% unpack algorithm options
 
 %get the default options
@@ -87,13 +95,6 @@ if options.save
 end
 
 
-
-%% extract the MR acqusition parameters 
-
-if ischar(gradechoinv)%check if gradechoinv is a path to a file
-    gradechoinvfilename = gradechoinv;
-    gradechoinv = importdata(gradechoinvfilename);
-end
 
 
 %% unpack a few well-used options
@@ -264,9 +265,8 @@ elseif strcmp(options.init,'meanspectrum')
         
     if onweights
         %initialise weights given initial spectra
-        currentweights = []; %random starting points       
-        weights = inspect_map_weights_update(allimg,currentweights,Fcomp,Kalpha,gradechoinv,options);
-              
+        currentweights = []; %random starting points               
+        weights = inspect_map_weights_update(allimg,currentweights,Fcomp,Kalpha,gradechoinv,options);              
     else
         weights = options.weights;
     end

@@ -17,10 +17,11 @@ The required inputs are:
 * binary mask (nifti or matlab array)
 * string specifying the kernel to use, e.g. 'DT2' is exp(-bD) * exp(-TE/T2)
 
-For example the following command will run the InSpect segmenetation version on "image.nii", which was acquired with the MR parameters in "gradechoinv.txt", on the voxels specified by "mask.nii" using a diffusion-T2 kernel.
+For example the following command will run the InSpect segmenetation version on qMRI data "image.nii", which was acquired with the MR parameters in "gradechoinv.txt", on the voxels specified by "mask.nii", using a diffusion-T2 kernel.
 
 `output = inspect_seg(‘image.nii’, ‘gradechoinv.txt’, ‘mask.nii’, ‘DT2’)`
 
+I recommend trying out the `simulated_example_inspect_map` and `simulated_example_inspect_seg` commands to get an idea of how InSpect works. Each command synthesises example datasets then compares the corresponding InSpect version to voxelwise spectral mapping.
 
 
 Paddy Slator, p.slator@ucl.ac.uk

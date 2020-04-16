@@ -4,6 +4,13 @@ function [output,outputsummary] = inspect_seg(img,gradechoinv,mask,kernel,option
 %assumes that each voxel is associated with a single cluster, and each
 %cluster has an associated spectrum
 %
+% Reference: ?Slator, P. J. et al. ?InSpect: INtegrated SPECTral 
+% Component Estimation and Mapping for Multi-contrast Microstructural 
+% MRI. in IPMI 2019 755?766 (Springer, Cham, 2019). 
+% https://doi.org/10.1007/978-3-030-20351-1_59
+%
+%
+%
 % REQUIRED INPUTS:
 %
 % img - either a single image, a cell of multiple images, or file path to a

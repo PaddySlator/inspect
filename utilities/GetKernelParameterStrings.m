@@ -15,7 +15,9 @@ switch kernelname
     case 'DK'
         strings = {'d','k'};
     case 'DKT2T1'
-        strings = {'d','k','t2','t1'};        
+        strings = {'d','k','t2','t1'};
+    case 'T2'
+        strings = {'t2'};
 end
         
                       

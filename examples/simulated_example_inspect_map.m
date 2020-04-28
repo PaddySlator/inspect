@@ -4,7 +4,7 @@ clear
 %set some options that are the same for all simulations
 
 %saving options
-saveon=0;
+saveon=1;
 inspect_options.save=saveon;
 
 %noise level and type 
@@ -18,7 +18,7 @@ noisetype = 'rician';
 % the same volume fraction image
 
 %image dimension
-imgdim = [10 10 1];
+imgdim = [50 50 1];
 %define mask
 mask = ones(imgdim);
 %number of spectral components 
@@ -80,22 +80,74 @@ for x=1:imgdim(1) %loop over voxels
     end
 end
 
+
+%% set up everything for saving
+
+%where to save the figures
+figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
+
+%make a nice string for the directory
+dir_string = ['SNR_' num2str(SNR)];
+
+dir_string = [dir_string '_T2'];
+for i=1:length(t2)
+    dir_string = [dir_string '_' num2str(t2(i))];
+end
+
+dir_string = [dir_string '_D'];
+for i=1:length(d)
+    dir_string = [dir_string '_' num2str(d(i))];
+end
+
+dir_string = [dir_string '/'];
+
+mkdir([figuredir dir_string]);
+
+
+% save the ground truth as a nifti
+if saveon
+    niftiwrite(vfimg, [figuredir dir_string 'Vf_ground_truth.nii.gz'],'Compressed',true);
+end
+
+%save the simulated image as nifti
+if saveon
+    niftiwrite(simimg, [figuredir dir_string 'simimg'],'Compressed',true);
+end
+
+inspect_options.save_path = figuredir;
+inspect_options.dirname = dir_string;
+
+%%
 %%% do the inspect and voxelwise fits %%%
 
-% fit inspect continuous version
-siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+%choose these (default is pretty similar but these line up the plots
+%nicely)
+%inspect_options.ILT.mink = [2*10^-4  5];
+%inspect_options.ILT.maxk = [1  200];
 
+% fit inspect continuous version
+comps = 8:10;
+
+for i=1:length(comps)
+    inspect_options.n_comp = comps(i);
+    siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+end
+
+return
 
 % fit voxelwise spectra and integrate in spectral ROIs to get
 % volume fraction maps
 
 %set spectral ROIs
 clear options
-options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
-options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+vox_options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
+vox_options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+
+vox_options.save_path = inspect_options.save_path;
+vox_options.dirname = inspect_options.dirname;
 
 %voxelwise fit
-simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',options);
+simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
 
 
    
@@ -129,38 +181,8 @@ plot_map_vs_vox_sim(siminspectmap,simvoxfit,vfimg);
 
 
 
-%% set up everything for saving
+return
 
-%where to save the figures
-figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
-
-%make a nice string for the directory
-dir_string = ['SNR_' num2str(simoptions.SNR)];
-
-dir_string = [dir_string '_T2'];
-for i=1:length(spectparams.T2)
-    dir_string = [dir_string '_' num2str(spectparams.T2(i))];
-end
-
-dir_string = [dir_string '_D'];
-for i=1:length(spectparams.D)
-    dir_string = [dir_string '_' num2str(spectparams.D(i))];
-end
-
-dir_string = [dir_string '/'];
-
-mkdir([figuredir dir_string]);
-
-
-% save the ground truth as a nifti
-if saveon
-    niftiwrite(vfimg, [figuredir dir_string 'Vf_ground_truth.nii.gz'],'Compressed',true);
-end
-
-%save the simulated image as nifti
-if saveon
-    niftiwrite(simimg, [figuredir dir_string 'simimg'],'Compressed',true);
-end
 
 
 

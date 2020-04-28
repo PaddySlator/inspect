@@ -11,7 +11,9 @@ params = GetKernelParameterStrings(kernel);
 
 ndim = length(grid);
 
-figure;hold on;
+if ndim >= 3 %need multiple figures (otherwise just plot in the current figure)
+    figure;hold on;
+end
 
 if ndim == 1 %1D spectrum
     plot(grid{1},F)

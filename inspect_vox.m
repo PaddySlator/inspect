@@ -144,6 +144,23 @@ for i=1:nimg
         [nx{i} ny{i} nz{i}]);
 end
 
+
+%save the volume fraction image as nifti
+if isfield(options,'save')
+    if options.save
+        for i=1:nimg %separate nifti for each image        
+            niftiwrite(vfimg{i},[options.save_path options.dirname '/Vfvoxelwise_'  options.scan_names{i} '.nii.gz'])
+        end
+        output.fullsavepath = [options.save_path options.dirname];
+    end
+end
+
+
+
 output.spectvf = spectvf;
 output.vfimg = vfimg;
+
+%save the ILT output for one voxel
+output.voxILT = voxILT;
+
 

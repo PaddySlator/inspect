@@ -105,7 +105,7 @@ parfor i=1:nvox
         %make a function for optimisation (minimize the negative logli) which takes only weights as input
         zoptfun = @(z) -calculate_map_logli(S,z,Fcomp,sigvec(i),Kalpha);
         
-        %optimize for weights, including probcon function (parameters sum to 1)
+        %optimize for weights, including probcon function (parameters sum to 1)                                      
         weights(i,:) = fmincon(zoptfun,z0,[],[],[],[],lb,ub,@probcon,fmincon_options);
         
         nupdate=1;%display an update for every nth voxel

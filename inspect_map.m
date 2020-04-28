@@ -523,7 +523,8 @@ if onF
     end
     %make a structure
     spectra.F = F;
-    spectra.w = w;   
+    spectra.w = w; 
+    output.spectra = spectra;
 
     if isfield(options,'save') %save the spectra as a mat file
         if options.save
@@ -553,6 +554,7 @@ end
 
 
 
+
 %calculate the AIC and BIC
 %number of model parameters
 %there are ncomp - 1 weight parameters in each voxel - since they sum to 1
@@ -579,6 +581,7 @@ output.imgweights = imgweights;
 
 output.options = options;
 
+output.kernel = kernel;
 
 %save a summary of the output
 outputsummary.AIC = output.AIC;
@@ -602,5 +605,11 @@ if isfield(options,'save')
     end
 end
 
+%do a plot and save it
+try    
+    plot_inspect_map(output,options)
+catch
+    warning('plotting function did not work...')
+end
 
 end

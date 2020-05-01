@@ -57,11 +57,29 @@ nvox = size(allimg,1);
 
 %get 1/SNR for all voxels
 if strcmp(options.SNR, 'voxelwise')
-    sigvec = estimate_sd(allimg,gradechoinv);  
-elseif isscalar(options.SNR)
-    sigvec = ones(nvox,1) * (1/options.SNR);
-else
-    sigvec = options.SNR(:);
+    sigvec = estimate_sd(allimg,gradechoinv);
+    size(allimg,1)    
+    size(sigvec,1)
+    if size(sigvec,1)~=size(allimg,1) %if standard deviations are not the right length
+        if isscalar(options.fixedSNR)
+            sigvec = ones(nvox,1) * (1/options.fixedSNR);
+        else
+            sigvec = 1./options.fixedSNR(:);
+        end
+        
+        disp(['Cannot estimate sigma voxelwise. Replacing with default SNR = ' num2str(options.fixedSNR)])
+    end
+    if any(isnan(sigvec))
+        %replace any NaNs with the default fixed SNR value        
+        sigvec(isnan(sigvec)) = 1/options.fixedSNR;            
+        disp(['Cannot estimate sigma voxelwise. Replacing with default SNR = ' num2str(options.fixedSNR)])
+    end
+elseif strcmp(options.SNR,'fixed')
+    if isscalar(options.fixedSNR)
+        sigvec = ones(nvox,1) * (1/options.fixedSNR);
+    else
+        sigvec = 1./options.fixedSNR(:);
+    end
 end
 
 
@@ -101,7 +119,7 @@ parfor i=1:nvox
             %augment the signal
             S = [S; zeros(prod(Nk), 1)];
         end
-                             
+                          
         %make a function for optimisation (minimize the negative logli) which takes only weights as input
         zoptfun = @(z) -calculate_map_logli(S,z,Fcomp,sigvec(i),Kalpha);
         

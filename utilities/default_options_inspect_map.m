@@ -12,7 +12,7 @@ options.init='meanspectrum';
 %number of compartments
 options.ncomp = 3;
 %maximum iterations
-options.maxiter = 2;
+options.maxiter = 5;
 %tolerance for convergence
 options.weightstol = 10^-3;
 %turn updates on/off for debugging
@@ -22,7 +22,9 @@ options.onweights = 1;
 options.relabel = 1;
 %estimate SNR by taking standard deviation of voxels
 options.SNR = 'voxelwise';
-
+%this is the default SNR value that will be used if cannot be estimated by
+%taking standard deviation
+options.fixedSNR = 100;
 
 %% ILT options
 options.ILT = default_ILT_options(kernel,gradechoinv);

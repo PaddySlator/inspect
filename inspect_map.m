@@ -53,6 +53,7 @@ function output = inspect_map(img,gradechoinv,mask,kernel,options)
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 % GNU General Public License for more details.
 
+tic;
 
 %% preprocess the image/images
 

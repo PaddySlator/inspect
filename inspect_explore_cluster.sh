@@ -28,10 +28,14 @@
 inspect_explore_cluster(){
     #make sure inspect is on the path and matlab path
     #cluster version
-    inspectpath='/home/pslator/inspect'
-    
+    inspectpath='~/inspect:~/inspect/utilities:~/inspect/examples:~/inspect/subfunctions:~/inspect/plotting:~/inspect/kernels'
     export PATH=$inspectpath:$PATH
     export MATLABPATH=$inspectpath
+
+    #make sure matlab scripts are on the path
+    scriptspath='/home/pslator/matlab_scripts/'
+    export PATH=$scriptspath:$PATH	
+    
   
     imgs=()
     gradechoinv=()
@@ -75,13 +79,20 @@ inspect_explore_cluster(){
             echo "Number of images and masks must be the same!" 1>&2
             exit 1
     fi
-               
+               	
+    
+    echo $PATH
 
     #cluster version
-    for ((n=0; n<=nimg; n++));
+    for ((n=0; n<nimg; n++));
     do
         echo ${imgs[n]}
-        qsub matlab.multicpufun inspect_explore '${imgs[n]}' '$gradechoinv' '${masks[n]}' '$kernel'
+	echo $gradechoinv
+	echo ${masks[n]} 
+	echo $kernel
+	echo inspect_explore
+
+        qsub /home/pslator/matlab_scripts/matlab.multicpufun inspect_explore ${imgs[n]} $gradechoinv ${masks[n]} $kernel
     done
   
 

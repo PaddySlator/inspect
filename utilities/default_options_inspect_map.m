@@ -10,7 +10,7 @@ options.kernel = kernel;
 %initialisation of the voxelwise clustering
 options.init='meanspectrum';
 %number of compartments
-options.ncomp = 3;
+options.ncomp = 4;
 %maximum iterations
 options.maxiter = 5;
 %tolerance for convergence

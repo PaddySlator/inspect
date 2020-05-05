@@ -1,8 +1,8 @@
 #!/bin/sh
 
-#  inspect_explore_all.sh
+#  inspect_explore.sh
 #
-#  inspect_explore_all.sh [ options ] img mask
+#  inspect_explore.sh [ options ] img mask
 #
 #  Created by Paddy Slator on 30/04/2020.
 
@@ -25,7 +25,7 @@
 
 
 
-inspect_explore_all(){
+inspect_explore(){
     #set shortcut to matlab (doesn't matter for cluster version)
     matlab='/Applications/MATLAB_R2019a.app/bin/matlab'
     
@@ -90,12 +90,7 @@ inspect_explore_all(){
             echo "Number of images and masks must be the same!" 1>&2
             exit 1
     fi
-    
-    for n in {1..3}
-    do
-        echo $n
-    done
-   
+     
     for ((n=0; n<=nimg; n++));
       do
         $matlab -nodesktop -r  "try;inspect_explore('${imgs[n]}','$gradechoinv','${masks[n]}','$kernel'); catch; end; quit" > InSpectOutputLogFile
@@ -114,7 +109,7 @@ inspect_explore_all(){
     
     
 # -nojvm -nosplash -nodisplay -nodesktop
-#    $matlab -nodesktop -r  "try;inspect_explore('$imgs','$gradechoinv','$masks','$kernel'); catch; end; quit" > InSpectOutputLogFile
+#    $matlab -nodisplay -nodesktop -nosplash -batch "try;inspect_explore('$imgs','$gradechoinv','$masks','$kernel'); catch; end; quit" > InSpectOutputLogFile
     
     
     
@@ -128,7 +123,7 @@ inspect_explore_all(){
 }
 
 
-inspect_explore_all $*
+inspect_explore $*
 
 
 

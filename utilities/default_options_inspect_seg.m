@@ -10,7 +10,7 @@ options.kernel = kernel;
 %initialisation of the voxelwise clustering
 options.init='kmeans';
 %number of clusters
-options.nclus = 4;
+options.nclus = 3;
 %maximum number of EM steps
 options.maxiter = 10;
 %tolerance for convergence

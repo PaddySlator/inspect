@@ -11,7 +11,7 @@ There are three main commands:
   * InSpect continuous mapping algorithm 
     * Reference: paper in preparation
 * inspect_vox.m
-  * Implementation of standard voxelwise spectral estimation and calculation of apparent volumen fractions with spectral integration (i.e. not my algorithm!).
+  * Implementation of standard voxelwise spectral estimation and calculation of apparent volume fractions with spectral integration (i.e. not my algorithm!).
     * Reference (the earliest I can find): English, A.E. et al. Quantitative Two-Dimensional time Correlation Relaxometry.  MRM 22(2), 425–434 (dec 1991). https://doi.org/10.1002/mrm.1910220250
 
 The required inputs are: 

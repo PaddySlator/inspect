@@ -85,16 +85,35 @@ inspect_explore(){
        
     nimg="${#imgs[@]}"
     nmask="${#masks[@]}"
-    if [nimg ~= nmask]
+    if [ $nimg != $nmask ]
         then
-            echo "Number of images and masks must be the same!" 1>&2
+            echo "Error! Number of images and masks must be the same!" 1>&2
             exit 1
     fi
      
     for ((n=0; n<=nimg; n++));
       do
-        $matlab -nodesktop -r  "try;inspect_explore('${imgs[n]}','$gradechoinv','${masks[n]}','$kernel'); catch; end; quit" > InSpectOutputLogFile
+        # $matlab -batch  "try;inspect_explore('${imgs[n]}','$gradechoinv','${masks[n]}','$kernel'); catch; end; quit" > InSpectOutputLogFile
+        echo hi  
       done
+
+    #modify file list into the correct input format for inspect_explore.m
+    allimgs=$(echo "${imgs[@]}")
+    allmasks=$(echo "${masks[@]}")
+    #put {" "} around the outside 
+    allimgs="{\""$allimgs"\"}"
+    allmasks="{\""$allmasks"\"}"
+    #replace all spaces with ","
+    allimgs=$(echo ${allimgs// /\",\"})
+    allmasks=$(echo ${allmasks// /\",\"})
+
+    echo $allimgs
+    echo $allmasks
+    
+    #$matlab -batch "disp('matlab started 3289nj'); disp('${imgs[3]}') ; disp('$allimgs'); " -logfile inspect_explore.log
+    #$matlab -batch "disp('matlab started 3454');disp(${imgs[@]});quit" -logfile inspect_explore.log
+    $matlab -batch "inspect_explore($allimgs,'$gradechoinv',$allmasks,'$kernel');" -logfile inspect_explore_joint_fit.log
+      
 
     #cluster version
     #for ((n=0; n<=nimg; n++));

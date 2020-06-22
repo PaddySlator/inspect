@@ -108,10 +108,14 @@ parfor i=1:nvox
     ...for i=1:nvox    
         %get the fmincon starting point 
         z0 = z(i,:);
-        %double check that they are normalised to 1 - and hence satisfy the
-        %constraint
-        z0 = z0./sum(z0);
         
+        sumto1=0;
+        if sumto1
+            %double check that they are normalised to 1 - and hence satisfy the
+            %constraint
+            %z0 = z0./sum(z0);
+        end
+            
         %get the signal for this voxel
         S = allimg(i,:)';
         
@@ -123,8 +127,12 @@ parfor i=1:nvox
         %make a function for optimisation (minimize the negative logli) which takes only weights as input
         zoptfun = @(z) -calculate_map_logli(S,z,Fcomp,sigvec(i),Kalpha);
         
-        %optimize for weights, including probcon function (parameters sum to 1)                                      
-        weights(i,:) = fmincon(zoptfun,z0,[],[],[],[],lb,ub,@probcon,fmincon_options);
+        if sumto1
+            %optimize for weights, including probcon function (parameters sum to 1)                                      
+            weights(i,:) = fmincon(zoptfun,z0,[],[],[],[],lb,ub,@probcon,fmincon_options);
+        else
+            weights(i,:) = fmincon(zoptfun,z0,[],[],[],[],lb,ub,[],fmincon_options);
+        end
         
         nupdate=1;%display an update for every nth voxel
         if mod(i,nupdate) == 0

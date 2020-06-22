@@ -20,16 +20,17 @@ onTI = ~any(isnan(TI));
 %set this - visual inspection suggests 0.5 is good for ZEBRA data
 TIratio = 0.5;
 
+
 if onb && ~onTE && ~onTI %diffusion
-    sigma = std(img(:, b == 0)');
+    sigma = std(img(:, b == min(b))');
 elseif onb && onTE && ~onTI %T2-diffusion
-    sigma = std(img(:, b == 0 & TE == min(TE))');
+    sigma = std(img(:, b == min(b) & TE == min(TE))');
 elseif onb && ~onTE && onTI %T1-diffusion
-    sigma = std(img(:, b == 0 & TI > TIratio * TR)');
+    sigma = std(img(:, b == min(b) & TI > TIratio * TR)');
 elseif ~onb && onTE && onTI %T1-T2
     sigma = std(img(:, TE == min(TE) & TI > TIratio * TR)');
 elseif onb && onTE && onTI %T1-T2-diffusion        
-    sigma = std(img(:, b == 0 & TE == min(TE) & TI > TIratio * TR)');    
+    sigma = std(img(:, b == min(b) & TE == min(TE) & TI > TIratio * TR)');    
 end
 
 %make sure that output is a column vector 

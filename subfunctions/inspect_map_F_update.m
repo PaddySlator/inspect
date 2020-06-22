@@ -1,4 +1,4 @@
-function [Fcompvec, RESNORM, Fcomp, dmean, Cmean] = inspect_map_F_update(allimg,FcompvecPrevStep,weights,K,Kalpha,options)
+function [Fcompvec, RESNORM, Fcomp, dmean, Cmean] = inspect_map_F_update(allimg,FcompvecPrevStep,weights,K,Kalpha,gradechoinv,options)
 
 ncomp = options.ncomp;
 nvox = size(allimg,1);
@@ -77,6 +77,10 @@ for j=1:ncomp
         end
         
         if noreg %without reg
+            sigvec = estimate_sd(allimg,gradechoinv);               
+            
+            %noise_floor=repmat(sigvec.*sqrt(pi/2),[1 size(allimg,2)]);  
+                                
             SminusKF = allimg' - KFvecProdAll;
         else %with reg (need to augment the signal)
             %allimgaug = [allimg zeros(nvox, Nk)];

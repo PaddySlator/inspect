@@ -7,7 +7,8 @@ Fvec = F(:);
 
 
 %LogLi = sum( - (1/(2*sig^2))*(S - Kalpha*Fvec).^2);
-
+   
+%noise_floor = sig*sqrt(pi/2);
 
 LogLi =  - (1/(2*sig^2)) * sum( (S - Kalpha*Fvec).^2 );
 

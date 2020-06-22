@@ -100,8 +100,10 @@ if options.ILT.reg
     LogLi = (-1./(2*sigvec.^2)) .* sum((allimgaug - KalphaFvec).^2,2);
 
 else            
+       
+    %noise_floor=repmat(sigvec.*sqrt(pi/2),[1 size(allimg,2)]);       
     
-    LogLi = (-1./(2*sigvec.^2)) .* sum((allimg - KalphaFvec).^2,2);
+    LogLi = (-1./(2*sigvec.^2)) .* sum((allimg - KalphaFvec ).^2,2);
      
      
     RESNORM = norm(allimg-KalphaFvec);

@@ -8,12 +8,12 @@ function [img,imgfilename,mask,nimg,allimg,imgind,voxind,nvox,nx,ny,nz] = inspec
 
 
 %check if img is a path to a nifti file/files
-if ischar(img) %single nifti file
-    imgfilename = img;
+if ischar(img) || isstring(img) %single nifti file
+    imgfilename = char(img); %if string convert to character
     img = niftiread(imgfilename); %load main image
 elseif iscell(img)
-    if ischar(img{1}) %multiple nifti filenames
-        imgfilename = img;
+    if ischar(img{1}) || isstring(img{1}) %multiple nifti filenames      
+        imgfilename = cellfun(@char,img,'UniformOutput',false); %make sure it's a character
         %total number of filenames provided - i.e. number of images
         nimg = length(img);
         %store the images in a cell
@@ -29,12 +29,12 @@ else
 end
 
 %check if mask is a path to a nifti file
-if ischar(mask)
+if ischar(mask) || isstring(mask)
     maskfilename = mask;
     mask = niftiread(maskfilename); %load mask image
     
 elseif iscell(mask)
-    if ischar(mask{1}) %multiple nifti filenames
+    if ischar(mask{1}) || isstring(mask{1}) %multiple nifti filenames
         maskfilenames = mask;
         %store the images in a cell
         mask = cell(nimg,1);

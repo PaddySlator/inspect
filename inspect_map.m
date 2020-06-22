@@ -183,7 +183,7 @@ if strcmp(options.init,'kmeans')
            Fcompvec{i} = sum(ILT_mean.F(:)) * Fcompvec{i}./sum(Fcompvec{i});
         end
 
-        %[Fcompvec, Fcomp, dmean, Cmean] = inspect_map_F_update(allimg,Fcompvec,weights,K,Kalpha,options);
+        %[Fcompvec, Fcomp, dmean, Cmean] = inspect_map_F_update(allimg,Fcompvec,weights,K,Kalpha,gradechoinv,options);
     else
         Fcomp = options.Fcomp;
         for i=1:length(Fcomp)
@@ -367,7 +367,7 @@ while k <= options.maxiter && ~converged
             options.includecomp(j) = 1;
             %calculate spectrum for this canonical spectral component,
             %given the other spectral components and weights            
-            [Fcompvec, RESNORM, Fcomp, dmean{j}, Cmean{j}] = inspect_map_F_update(allimg,Fcompvec,weights,K,Kalpha,options);
+            [Fcompvec, RESNORM, Fcomp, dmean{j}, Cmean{j}] = inspect_map_F_update(allimg,Fcompvec,weights,K,Kalpha,gradechoinv,options);
 
 
             if onweights %now update the weights

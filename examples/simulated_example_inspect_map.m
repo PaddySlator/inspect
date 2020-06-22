@@ -11,6 +11,10 @@ inspect_options.save=saveon;
 SNR = 200;
 noisetype = 'rician';
 
+disp('try simulating with the spectra')
+disp('check that the SNR matches up with S0')
+disp('try with S0=100 or so')
+
 
 %% Simulate volume fraction image.
 % Each voxel is the weighting of the corresponding 
@@ -18,7 +22,7 @@ noisetype = 'rician';
 % the same volume fraction image
 
 %image dimension
-imgdim = [50 50 1];
+imgdim = [20 20 1];
 %define mask
 mask = ones(imgdim);
 %number of spectral components 
@@ -66,19 +70,26 @@ for x=1:imgdim(1) %loop over voxels
             %get volume fractions for this voxel
             f = squeeze(vfimg(x,y,z,:)); 
             %simulate the signal by summing each component's signal   
-            S=0;
+            S=0;            
             for i=1:length(f) %loop over components                     
                 %parameters for this component in this voxel
                 kernel.params = spectral_comp(:,i);
                 S = S + f(i) * KernelMeas(kernel,gradechoinv);                                                              
-            end     
+            end 
+            %normalise
+            b0teminindex = 1;           
+            S=S./S(b0teminindex);
             %add noise
             S = add_noise(S,SNR,noisetype);
+            %scale
+            S0=100;
+            S=S*S0;
             %assign to image
             simimg(x,y,z,:) = S;
         end
     end
 end
+
 
 
 %% set up everything for saving
@@ -122,15 +133,22 @@ inspect_options.dirname = dir_string;
 
 %choose these (default is pretty similar but these line up the plots
 %nicely)
-%inspect_options.ILT.mink = [2*10^-4  5];
-%inspect_options.ILT.maxk = [1  200];
+inspect_options.ILT.mink = [2*10^-4  5];
+inspect_options.ILT.maxk = [5  200];
+
+inspect_options.ILT_mean.mink = [2*10^-4  5];
+inspect_options.ILT_mean.maxk = [5  200];
+
+inspect_options.maxiter = 2;
 
 % fit inspect continuous version
-comps = 8:10;
+comps = 4:5;
 
+siminspectmap = cell(length(comps),1);
+ 
 for i=1:length(comps)
-    inspect_options.n_comp = comps(i);
-    siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+    inspect_options.ncomp = comps(i);
+    siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
 end
 
 return

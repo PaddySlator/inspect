@@ -294,7 +294,7 @@ while k <= options.maxiter && ~converged
         %sigvec = sigvec';      
         
         sigvec = estimate_sd(allimg,gradechoinv);       
-         
+                 
         %augment the signal
         %augallimg = [allimg zeros(nvox, options.ILT.Nk1 * options.ILT.Nk2)];
         %disp('augallimg')

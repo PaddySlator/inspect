@@ -66,8 +66,8 @@ max_grid.k=1;
 TE = unique(TE);
 %heuristic choice of how far above/below the min/max TE to have the max/min
 %T2
-TEmincoeff = 10;
-TEmaxcoeff = 1;
+TEmincoeff = 5;
+TEmaxcoeff = 5;
 
 min_grid.t2 = (1/TEmincoeff) * min(TE);
 max_grid.t2 = TEmaxcoeff * max(TE);

@@ -108,7 +108,7 @@ inspect_options.ILT = ILT_options;
 
 
 %number of compartments 
-inspect_options.n_comp = 3 ;
+inspect_options.n_comp = 4 ;
 
 inspect_options.maxiter = 5 ;
 inspect_options.init = 'random';
@@ -122,15 +122,6 @@ inspect_options.updateF = 0;
 
 inspect_options.parallel = 1;
 
-inspect_options.hill.nsteps = 100;
-inspect_options.hill.stepsize = 0.05;
-inspect_options.hill.adaptwindow = 10;
-
-inspect_options.hill.stepsizeadjustfactor = 5;
-
-inspect_options.hill.adjustlowertol = 10^-2;
-inspect_options.hill.adjustuppertol = 10;
-
 inspect_options.weightstol = 10^-3;
 
 inspect_options.onF = 1;
@@ -140,9 +131,14 @@ inspect_options.relabel = 1;
 
 inspect_options.save = 1;
 inspect_options.dirname = 'placenta_fits_allimgs';
-inspect_options.dirname = 'placenta_fits';
+%inspect_options.dirname = 'placenta_fits';
 inspect_options.save_path = '/Users/paddyslator/Documents/PlacentaDocs/papers/inspect_map/';
 inspect_options.save_path = '/home/pslator/IPMI2019/'
+
+kernel = 'DT2';
+
+% fit to all images at once
+placentainspectmap = inspect_map(imgs, gradechoinv,masks,kernel,inspect_options);
 
 
 
@@ -153,39 +149,37 @@ inspect_options.save_path = '/home/pslator/IPMI2019/'
 %loop over all images 
 %choose these images
 
-pipid = {'pip012002','pip0120','pip0108'};
-ncomp = [3 4 5];
-include = [1 1 1];
+% pipid = {'pip012002','pip0120','pip0108'};
+% ncomp = [3 4 5];
+% include = [1 1 1];
 
-for i=1:length(pipid)
-    if include(i)
-            
-        %load the placenta gradechoinv file
-        %gradechoinv = load('/Users/paddyslator/Dropbox/placentaJhu/t2sdiff/pip0111/grad_echo_inv.txt');
-        
-        gradechoinv = load([imgpath (pipid{i}) '/grad_echo_inv.txt']);
+% for i=1:length(pipid)
+%     if include(i)
+%             
+%         %load the placenta gradechoinv file
+%         %gradechoinv = load('/Users/paddyslator/Dropbox/placentaJhu/t2sdiff/pip0111/grad_echo_inv.txt');
+%         
+%         gradechoinv = load([imgpath (pipid{i}) '/grad_echo_inv.txt']);
+% 
+%         nmeas = size(gradechoinv,1);
+%         
+%         img = t2diff.( pipid{i} ).normt2diffimg.img;
+%         mask = t2diff.( pipid{i} ).masks.(maskname).img;
+%         
+%         %loop over a number of different compartments
+%         %maxcomp = 2;
+%         %mincomp = 10;
+%         %for j=mincomp:maxcomp
+%             %inspect_options.n_comp = j;
+% 	    inspect_options.n_comp = ncomp(i)
+% 	    inspect_options.scan_names = pipid{i}
+%             placentainspectmap = inspect_map(img, gradechoinv,mask,inspect_options);
+%         %end
+%         
+%     end
+% end
 
-        nmeas = size(gradechoinv,1);
-        
-        img = t2diff.( pipid{i} ).normt2diffimg.img;
-        mask = t2diff.( pipid{i} ).masks.(maskname).img;
-        
-        %loop over a number of different compartments
-        %maxcomp = 2;
-        %mincomp = 10;
-        %for j=mincomp:maxcomp
-            %inspect_options.n_comp = j;
-	    inspect_options.n_comp = ncomp(i)
-	    inspect_options.scan_names = pipid{i}
-            placentainspectmap = inspect_map(img, gradechoinv,mask,inspect_options);
-        %end
-        
-    end
-end
 
-
-% fit to all images at once
-%placentainspectmap = inspect_map(imgs, gradechoinv,masks,inspect_options);
 
 
 

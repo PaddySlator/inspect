@@ -5,7 +5,8 @@ function plot_inspect_seg(output)
 nclus = output.options.nclus;
 
 nrow = floor(sqrt(nclus));
-ncol = nclus/nrow;
+ncol = ceil(nclus/nrow);
+
 
 figure;
 
@@ -16,7 +17,7 @@ for i=1:nclus
     plot_multidim_spectrum(output.ILT_output{i}.F,...
         output.ILT_output{i}.grid,...
         output.kernel);
-
+    
     title(['Cluster ' num2str(i) ' Spectrum'])            
 end
 
@@ -26,8 +27,12 @@ for i=1:length(output.MLroi)
     figure;
     nslices = size(output.MLroi{i},3);
     
+    %hard code a sensible number of columns
+    ncol = 6;
+    nrow = ceil(nslices/ncol);
+    
     for j=1:nslices
-        subplot(1,nslices,j);
+        subplot(nrow,ncol,j);
         imagesc(output.MLroi{i}(:,:,j))
         
         set(gca,'YTickLabel',[]);
@@ -36,7 +41,7 @@ for i=1:length(output.MLroi)
         title(['Clusters slice ' num2str(j)])        
         
         cb=colorbar;
-        cb.Location = 'southoutside';        
+        cb.Location = 'eastoutside';        
         %cb.Position = cb.Position + 1e-100;
     end    
          

@@ -17,11 +17,17 @@ end
 
 if ndim == 1 %1D spectrum
     plot(grid{1},F)
-    xlabel(params{1})
+    xlabel(params{1})    
+    set(gca, 'XScale', 'log');        
+    
 elseif ndim == 2 %2D spectrum
     contour(grid{2},grid{1},F);
     xlabel(params{2})
     ylabel(params{1})   
+       
+    set(gca, 'XScale', 'log');   
+    set(gca, 'YScale', 'log');
+        
 elseif ndim >= 3 %3D and above - need to plot projections
     
     %plotting a 2D projection
@@ -60,6 +66,8 @@ elseif ndim >= 3 %3D and above - need to plot projections
         xlabel(params{dim2plot(i,2)})
         ylabel(params{dim2plot(i,1)})
         
+        set(gca, 'XScale', 'log');
+        set(gca, 'YScale', 'log');
     end        
 
 

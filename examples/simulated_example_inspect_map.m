@@ -8,7 +8,7 @@ saveon=1;
 inspect_options.save=saveon;
 
 %noise level and type 
-SNR = 200;
+SNR = 50;
 noisetype = 'rician';
 
 disp('try simulating with the spectra')
@@ -22,7 +22,7 @@ disp('try with S0=100 or so')
 % the same volume fraction image
 
 %image dimension
-imgdim = [20 20 1];
+imgdim = [50 50 1];
 %define mask
 mask = ones(imgdim);
 %number of spectral components 
@@ -82,8 +82,8 @@ for x=1:imgdim(1) %loop over voxels
             %add noise
             S = add_noise(S,SNR,noisetype);
             %scale
-            S0=100;
-            S=S*S0;
+            %S0=100;
+            %S=S*S0;
             %assign to image
             simimg(x,y,z,:) = S;
         end
@@ -96,6 +96,8 @@ end
 
 %where to save the figures
 figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
+figuredir = '/home/pslator/IPMI2019/simulations/';
+
 
 %make a nice string for the directory
 dir_string = ['SNR_' num2str(SNR)];
@@ -142,7 +144,7 @@ inspect_options.ILT_mean.maxk = [5  200];
 inspect_options.maxiter = 2;
 
 % fit inspect continuous version
-comps = 4:5;
+comps = 2:10;
 
 siminspectmap = cell(length(comps),1);
  
@@ -151,7 +153,7 @@ for i=1:length(comps)
     siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
 end
 
-return
+
 
 % fit voxelwise spectra and integrate in spectral ROIs to get
 % volume fraction maps
@@ -168,6 +170,7 @@ vox_options.dirname = inspect_options.dirname;
 simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
 
 
+return
    
 %%% plot the output %%%
 

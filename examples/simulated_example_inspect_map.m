@@ -1,6 +1,8 @@
 
 clear
 
+addpath(genpath('inspect'))
+
 %set some options that are the same for all simulations
 
 %saving options

@@ -2,7 +2,9 @@ function appended_options = append_options(options,default_options)
 
 %get a list of all the legitimate options
 legit_ILT_options = fields(default_options.ILT);
-legit_ILT_mean_options = fields(default_options.ILT_mean);
+if isfield(default_options,'ILT_mean')
+    legit_ILT_mean_options = fields(default_options.ILT_mean);
+end
 legit_options = fields(default_options);
 
 %user options for the ILT

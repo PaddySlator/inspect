@@ -135,28 +135,6 @@ inspect_options.dirname = dir_string;
 %%
 %%% do the inspect and voxelwise fits %%%
 
-%choose these (default is pretty similar but these line up the plots
-%nicely)
-inspect_options.ILT.mink = [2*10^-4  5];
-inspect_options.ILT.maxk = [5  200];
-
-inspect_options.ILT_mean.mink = [2*10^-4  5];
-inspect_options.ILT_mean.maxk = [5  200];
-
-inspect_options.maxiter = 2;
-
-% fit inspect continuous version
-comps = 2:10;
-
-siminspectmap = cell(length(comps),1);
- 
-for i=1:length(comps)
-    inspect_options.ncomp = comps(i);
-    siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
-end
-
-
-
 % fit voxelwise spectra and integrate in spectral ROIs to get
 % volume fraction maps
 
@@ -170,6 +148,32 @@ vox_options.dirname = inspect_options.dirname;
 
 %voxelwise fit
 simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
+
+
+
+
+%choose these options (default is pretty similar but these line up the plots
+%nicely)
+inspect_options.ILT.mink = [2*10^-4  5];
+inspect_options.ILT.maxk = [5  200];
+
+inspect_options.ILT_mean.mink = [2*10^-4  5];
+inspect_options.ILT_mean.maxk = [5  200];
+
+inspect_options.maxiter = 5;
+
+% fit inspect continuous version
+comps = 2:8;
+
+siminspectmap = cell(length(comps),1);
+ 
+for i=1:length(comps)
+    inspect_options.ncomp = comps(i);
+    siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+end
+
+
+
 
 
 return

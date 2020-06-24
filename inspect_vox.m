@@ -128,12 +128,16 @@ nSROI = size(options.sROI{1},1);
 %preallocate voxel-space spectral volume fraction image
 spectvf = zeros([nvox nSROI]);
 
+spectra = cell(nvox,1);
+
 for i=1:nvox
-    %calculate the spectra    
+    %calculate the spectra (takes up a lot of memory so replace each time)    
     voxILT = ILT(allimg(i,:),gradechoinv,options.ILT);
             
     %calculate volume fraction map
     spectvf(i,:) = integrate_vox_spectrum(voxILT.F,voxILT.grid,options.sROI);    
+    
+    spectra{i}=voxILT;
     
     disp(['completed voxel ' num2str(i) ' of ' num2str(nvox)])
 end
@@ -163,4 +167,8 @@ output.vfimg = vfimg;
 %save the ILT output for one voxel
 output.voxILT = voxILT;
 
+output.spectra = spectra;
+
+output.kernel = kernel;
+output.options = options;
 

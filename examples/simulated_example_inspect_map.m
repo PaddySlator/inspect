@@ -6,11 +6,11 @@ addpath(genpath('inspect'))
 %set some options that are the same for all simulations
 
 %saving options
-saveon=1;
+saveon=0;
 inspect_options.save=saveon;
 
 %noise level and type 
-SNR = 50;
+SNR = 200;
 noisetype = 'rician';
 
 disp('try simulating with the spectra')
@@ -95,29 +95,29 @@ end
 
 
 %% set up everything for saving
-
-%where to save the figures
-figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
-figuredir = '/home/pslator/IPMI2019/simulations/';
-
-
-%make a nice string for the directory
-dir_string = ['SNR_' num2str(SNR)];
-
-dir_string = [dir_string '_T2'];
-for i=1:length(t2)
-    dir_string = [dir_string '_' num2str(t2(i))];
+if saveon
+    %where to save the figures
+    figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
+    figuredir = '/home/pslator/IPMI2019/simulations/';
+    
+    
+    %make a nice string for the directory
+    dir_string = ['SNR_' num2str(SNR)];
+    
+    dir_string = [dir_string '_T2'];
+    for i=1:length(t2)
+        dir_string = [dir_string '_' num2str(t2(i))];
+    end
+    
+    dir_string = [dir_string '_D'];
+    for i=1:length(d)
+        dir_string = [dir_string '_' num2str(d(i))];
+    end
+    
+    dir_string = [dir_string '/'];
+    
+    mkdir([figuredir dir_string]);
 end
-
-dir_string = [dir_string '_D'];
-for i=1:length(d)
-    dir_string = [dir_string '_' num2str(d(i))];
-end
-
-dir_string = [dir_string '/'];
-
-mkdir([figuredir dir_string]);
-
 
 % save the ground truth as a nifti
 if saveon
@@ -129,25 +129,13 @@ if saveon
     niftiwrite(simimg, [figuredir dir_string 'simimg'],'Compressed',true);
 end
 
-inspect_options.save_path = figuredir;
-inspect_options.dirname = dir_string;
+if saveon
+    inspect_options.save_path = figuredir;
+    inspect_options.dirname = dir_string;
+end
 
 %%
 %%% do the inspect and voxelwise fits %%%
-
-% fit voxelwise spectra and integrate in spectral ROIs to get
-% volume fraction maps
-
-%set spectral ROIs
-clear options
-vox_options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
-vox_options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
-
-vox_options.save_path = inspect_options.save_path;
-vox_options.dirname = inspect_options.dirname;
-
-%voxelwise fit
-simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
 
 
 
@@ -169,8 +157,32 @@ siminspectmap = cell(length(comps),1);
  
 for i=1:length(comps)
     inspect_options.ncomp = comps(i);
-    siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+    %siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
 end
+
+
+
+
+% fit voxelwise spectra and integrate in spectral ROIs to get
+% volume fraction maps
+
+%set spectral ROIs
+clear options
+vox_options.sROI{1} = [0 0.001;0.001 0.01; 0.01 0.1; 0.1 10];
+vox_options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
+
+vox_options.ILT = inspect_options.ILT;
+vox_options.ILT.alpha=0.01;
+
+
+if saveon
+    vox_options.save_path = inspect_options.save_path;
+    vox_options.dirname = inspect_options.dirname;
+end
+
+%voxelwise fit
+simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
+
 
 
 

@@ -53,6 +53,7 @@ function weights = inspect_map_weights_update(allimg,currentweights,Fcomp,Kalpha
 Nk = options.ILT.Nk;
 reg = options.ILT.reg;
 ncomp = options.ncomp;
+sumto1=options.sumto1;
 nvox = size(allimg,1);
 
 %get 1/SNR for all voxels
@@ -104,16 +105,17 @@ ub = ones(1,ncomp);
 %preallocate weights
 weights = zeros(nvox,ncomp);
 
+
+
 parfor i=1:nvox
     ...for i=1:nvox    
         %get the fmincon starting point 
         z0 = z(i,:);
-        
-        sumto1=0;
+                
         if sumto1
             %double check that they are normalised to 1 - and hence satisfy the
             %constraint
-            %z0 = z0./sum(z0);
+            z0 = z0./sum(z0);
         end
             
         %get the signal for this voxel

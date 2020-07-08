@@ -25,6 +25,9 @@ options.SNR = 'voxelwise';
 %this is the default SNR value that will be used if cannot be estimated by
 %taking standard deviation
 options.fixedSNR = 100;
+%choose whether to normalise the volume fractions
+options.sumto1 = 1;
+
 
 %% ILT options
 options.ILT = default_ILT_options(kernel,gradechoinv);

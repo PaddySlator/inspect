@@ -38,5 +38,5 @@ If one of these contrast mechanisms isn't varied in an experiment, you can pad t
 The examples folder also contains demonstrations of the functions. E.g. the `simulated_example_inspect_map` and `simulated_example_inspect_seg` commands synthesise example datasets, and then compare the corresponding InSpect version to voxelwise spectral mapping.
 
 ## Acknowledgements ##
-I found Mark Does's MERA toolbox (https://github.com/markdoes/MERA) very helpful for understanding and testing when developing this code. 
+Mark Does's MERA toolbox (https://github.com/markdoes/MERA) was very helpful for understanding and testing when developing this code. 
 

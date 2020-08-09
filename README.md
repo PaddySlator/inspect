@@ -9,7 +9,7 @@ There are three main commands:
     * Reference: Slator, P. J. et al. InSpect: INtegrated SPECTral Component Estimation and Mapping for Multi-contrast Microstructural MRI. in IPMI 2019 755–766 (Springer, Cham, 2019). https://doi.org/10.1007/978-3-030-20351-1_59 
 * inspect_map.m
   * InSpect continuous mapping algorithm 
-    * Reference: paper in preparation
+    * Reference: Slator, P. J. et al. Data-Driven Multi-Contrast Spectral Microstructure Imaging with InSpect. in MICCAI 2020 (accepted).
 * inspect_vox.m
   * Implementation of standard voxelwise spectral estimation and calculation of apparent volume fractions with spectral integration (i.e. not my algorithm!).
     * Reference (the earliest I can find): English, A.E. et al. Quantitative Two-Dimensional time Correlation Relaxometry.  MRM 22(2), 425–434 (dec 1991). https://doi.org/10.1002/mrm.1910220250
@@ -37,5 +37,6 @@ If one of these contrast mechanisms isn't varied in an experiment, you can pad t
 ## Examples ##
 The examples folder also contains demonstrations of the functions. E.g. the `simulated_example_inspect_map` and `simulated_example_inspect_seg` commands synthesise example datasets, and then compare the corresponding InSpect version to voxelwise spectral mapping.
 
-
+## Acknowledgements ##
+Mark Does's MERA toolbox (https://github.com/markdoes/MERA) was very helpful for understanding and testing when developing this code. 
 

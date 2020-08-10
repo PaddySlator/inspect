@@ -73,6 +73,7 @@ if ischar(gradechoinv)%check if gradechoinv is a path to a file
 end
 
 
+
 %% unpack algorithm options
  
 %get the default options
@@ -156,7 +157,7 @@ if strcmp(options.init,'kmeans')
         weights = zeros([nvox nclus]);
         for i=1:nvox
             weights(i,roivec(i)) = 1;
-        end                
+        end           
         initvals.weights = weights;
         time=toc;
         disp(['Initialised the voxelwise clusters with kmeans. It took ' num2str(time) ' seconds.']) 
@@ -233,8 +234,8 @@ while k <= options.maxiter && ~converged
         %arbitrary kernal and dimension       
         disp(['Calculating ILT: EM step ' num2str(k) ' of ' num2str(options.maxiter)...
             ' max, cluster ' num2str(j) '.' ])
-        tic;
-        ILT_output{j} = ILT(weightedmeansig{j},gradechoinv,options.ILT);
+        tic;               
+        ILT_output{j} = ILT(weightedmeansig{j},gradechoinv,options.ILT);                                        
         time=toc;
         disp(['Calculated ILT: EM step ' num2str(k) ' of ' num2str(options.maxiter)...
             ' max, cluster ' num2str(j) '. It took ' num2str(time) ' seconds.'])

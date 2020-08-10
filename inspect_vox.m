@@ -65,6 +65,14 @@ function [output,outputsummary] = inspect_vox(img,gradechoinv,mask,kernel,option
 [~,imgfilename,mask,nimg,allimg,imgind,voxind,nvox,nx,ny,nz] = inspect_preprocess_img(img,mask);
 
 
+%% extract the MR acqusition parameters 
+
+if ischar(gradechoinv)%check if gradechoinv is a path to a file
+    gradechoinvfilename = gradechoinv;
+    gradechoinv = importdata(gradechoinvfilename);
+end
+
+
 %% unpack algorithm options
  
 %get the default options
@@ -93,12 +101,6 @@ if options.save
 end
 
 
-%% extract the MR acqusition parameters 
-
-if ischar(gradechoinv)%check if gradechoinv is a path to a file
-    gradechoinvfilename = gradechoinv;
-    gradechoinv = importdata(gradechoinvfilename);
-end
 
 
 %% get the kernel dictionary values by doing a dummy fit to the first voxel

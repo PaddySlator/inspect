@@ -10,12 +10,8 @@ saveon=0;
 inspect_options.save=saveon;
 
 %noise level and type 
-SNR = 200;
+SNR = 400;
 noisetype = 'rician';
-
-disp('try simulating with the spectra')
-disp('check that the SNR matches up with S0')
-disp('try with S0=100 or so')
 
 
 %% Simulate volume fraction image.
@@ -24,7 +20,7 @@ disp('try with S0=100 or so')
 % the same volume fraction image
 
 %image dimension
-imgdim = [50 50 1];
+imgdim = [10 10 1];
 %define mask
 mask = ones(imgdim);
 %number of spectral components 
@@ -47,12 +43,12 @@ vfimg = vfimg./sum(vfimg,4);
 % Canonical spectral component values and MR acquisition 
 % parameters are based on those in: 
 %
-% Slator et al., Combined diffusion?relaxometry MRI to identify 
+% Slator et al., Combined diffusion-relaxometry MRI to identify 
 % dysfunction in the human placenta, MRM 2019.
 % https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27733
 %
 
-%load the placenta gradechoinv file
+%load the gradechoinv file
 gradechoinv_filename = 'inspect/examples/placenta_gradechoinv.txt';
 gradechoinv = load(gradechoinv_filename);
 
@@ -97,9 +93,9 @@ end
 %% set up everything for saving
 if saveon
     %where to save the figures
-    figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
-    figuredir = '/home/pslator/IPMI2019/simulations/';
-    
+    %figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/miccai2020/simulations/';
+    %figuredir = '/home/pslator/IPMI2019/simulations/';
+    figuredir = pwd;
     
     %make a nice string for the directory
     dir_string = ['SNR_' num2str(SNR)];
@@ -150,18 +146,13 @@ inspect_options.ILT_mean.maxk = [5  200];
 
 inspect_options.maxiter = 5;
 
+inspect_options.sumto1 = 0;
+
 % fit inspect continuous version
-comps = 2:8;
-
-siminspectmap = cell(length(comps),1);
- 
-for i=1:length(comps)
-    inspect_options.ncomp = comps(i);
-    %siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
-end
-
-
-
+comps = 4;
+inspect_options.ncomp = comps;
+     
+siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
 
 % fit voxelwise spectra and integrate in spectral ROIs to get
 % volume fraction maps
@@ -174,6 +165,7 @@ vox_options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
 vox_options.ILT = inspect_options.ILT;
 vox_options.ILT.alpha=0.01;
 
+vox_options.save=saveon;
 
 if saveon
     vox_options.save_path = inspect_options.save_path;
@@ -184,42 +176,36 @@ end
 simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
 
 
+%%% plot the output %%%
+
+%unpack some output variables
+%spectral grid
+grid = siminspectmap.options.ILT.grid;
+%output spectra
+Fcomp = siminspectmap.iter{end}{end}.Fcomp;
+%output voxelwise spectral weights
+imgweights = siminspectmap.iter{end}{end}.imgweights;
+
+%plot the spectral components 
+for i=1:siminspectmap.options.ncomp
+    figure;hold on;
+    contour(grid{2},grid{1},Fcomp{i})
+    
+    plot(spectral_comp(2,i),spectral_comp(1,i),'rx')
+    title(['Component ' num2str(i)])
+    legend({'InSpect fit','Ground Truth'})
+    set(gca, 'YScale', 'log');
+    xlabel('T2* (s)')
+    ylabel('ADC (mm^2/s)')
+end
+
+%plot a comparison of the volume fraction maps
+plot_map_vs_vox_sim(siminspectmap,simvoxfit,vfimg);
+
 
 
 return
    
-% %%% plot the output %%%
-% 
-% %unpack some output variables
-% %spectral grid
-% grid = siminspectmap.options.ILT.grid;
-% %output spectra
-% Fcomp = siminspectmap.iter{end}{end}.Fcomp;
-% %output voxelwise spectral weights
-% imgweights = siminspectmap.iter{end}{end}.imgweights;
-% 
-% %plot the spectral components 
-% for i=1:siminspectmap.options.ncomp
-%     figure;hold on;
-%     contour(grid{2},grid{1},Fcomp{i})
-%     
-%     plot(spectral_comp(2,i),spectral_comp(1,i),'rx')
-%     title(['Component ' num2str(i)])
-%     legend({'InSpect fit','Ground Truth'})
-%     set(gca, 'YScale', 'log');
-%     xlabel('T2* (s)')
-%     ylabel('ADC (mm^2/s)')
-% end
-% 
-% %plot a comparison of the volume fraction maps
-% plot_map_vs_vox_sim(siminspectmap,simvoxfit,vfimg);
-
-
-
-
-
-
-
 
 
 
@@ -306,7 +292,7 @@ return
 
 %% T1-T2-D example
 
-%simulate ZEBRA brain type experiment (e.g. MUDI challenge
+% simulate ZEBRA brain type experiment (e.g. MUDI challenge
 % http://cmic.cs.ucl.ac.uk/cdmri/challenge.html)
 
 % gradechoinv_filename = 'inspect/examples/mudi_gradechoinv.txt';

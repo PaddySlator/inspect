@@ -6,11 +6,11 @@ addpath(genpath('inspect'))
 %set some options that are the same for all simulations
 
 %saving options
-saveon=0;
+saveon=1;
 inspect_options.save=saveon;
 
 %noise level and type 
-SNR = 400;
+SNR = 50;
 noisetype = 'rician';
 
 
@@ -20,7 +20,7 @@ noisetype = 'rician';
 % the same volume fraction image
 
 %image dimension
-imgdim = [10 10 1];
+imgdim = [50 50 1];
 %define mask
 mask = ones(imgdim);
 %number of spectral components 
@@ -188,7 +188,7 @@ if saveon
     figuredir = pwd;
     
     %make a nice string for the directory
-    dir_string = ['SNR_' num2str(SNR)];
+    dir_string = ['continuous_spectra_SNR_' num2str(SNR)];
     
     dir_string = [dir_string '_T2'];
     for i=1:length(t2)
@@ -239,10 +239,12 @@ inspect_options.maxiter = 5;
 inspect_options.sumto1 = 0;
 
 % fit inspect continuous version
-comps = 4;
-inspect_options.ncomp = comps;
-     
-siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+comps = 2:8;
+
+for i=1:length(comps)
+    inspect_options.ncomp = comps(i);    
+    siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
+end
 
 % fit voxelwise spectra and integrate in spectral ROIs to get
 % volume fraction maps

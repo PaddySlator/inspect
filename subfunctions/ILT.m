@@ -79,7 +79,7 @@ elseif isfield(options,'K')
     K = options.K;
     grid = options.grid;
 else
-    %build the matrix of kernals - Nmeas x w1*w2*w3
+    %build the matrix of kernals - Nmeas x prod(Nk)
     %K = zeros(Nmeas,Nk1*Nk2*Nk3);
     K = zeros(Nmeas, prod(Nk));
     

@@ -174,8 +174,9 @@ if strcmp(options.init,'kmeans')
 
         %calculate spectrum on the overall mean signal
         meansig = mean(allimg);
-        ILT_mean = ILT_2D(meansig,gradechoinv,options.ILT_mean);
-
+        ILT_mean = ILT(meansig,gradechoinv,options.ILT_mean);
+        output.ILT_mean=ILT_mean;
+            
         %normalise so each spectrum component integrates to the same value
         %as the mean spectrum
         for i=1:ncomp
@@ -197,10 +198,8 @@ elseif strcmp(options.init,'meanspectrum')
     if onF
         %calculate spectrum on the overall mean signal
         meansig = mean(allimg);       
-        ILT_mean = ILT(meansig,gradechoinv,options.ILT_mean);       
-        output.ILT_mean = ILT_mean;
-
-        %identify the separated peaks in this, and use these as the intial spectra      
+        ILT_mean = ILT(meansig,gradechoinv,options.ILT_mean);              
+        %identify the separated peaks in this, and use these as the intial spectra                         
         [peaks,peaksvec] = extract_components_from_spectrum(ILT_mean.F);
 
         %if there are not enough peaks - do something

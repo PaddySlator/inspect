@@ -11,6 +11,7 @@ function [img,imgfilename,mask,nimg,allimg,imgind,voxind,nvox,nx,ny,nz] = inspec
 if ischar(img) || isstring(img) %single nifti file
     imgfilename = char(img); %if string convert to character
     img = niftiread(imgfilename); %load main image
+    img = double(img);
 elseif iscell(img)
     if ischar(img{1}) || isstring(img{1}) %multiple nifti filenames      
         imgfilename = cellfun(@char,img,'UniformOutput',false); %make sure it's a character
@@ -19,7 +20,8 @@ elseif iscell(img)
         %store the images in a cell
         img = cell(nimg,1);
         for i=1:nimg
-            img{i} = niftiread(imgfilename{i});
+            img{i} = niftiread(imgfilename{i});            
+            img{i} = double(img{i});
         end
     else %multiple images in a cell
         imgfilename=[];
@@ -32,7 +34,8 @@ end
 if ischar(mask) || isstring(mask)
     maskfilename = mask;
     mask = niftiread(maskfilename); %load mask image
-    
+    %make sure that the loaded mas is stored as double
+    mask = double(mask);
 elseif iscell(mask)
     if ischar(mask{1}) || isstring(mask{1}) %multiple nifti filenames
         maskfilenames = mask;
@@ -40,12 +43,13 @@ elseif iscell(mask)
         mask = cell(nimg,1);
         for i=1:nimg
             mask{i} = niftiread(maskfilenames{i});
+            %make sure that the loaded mas is stored as double
+            mask{i} = double(mask{i});
         end
     end
 else
     maskfilename=[];
 end
-
 
 %if the input is a single image volume put it into a one element cell, then can
 %just treat it the same as a multiple image stucture

@@ -1,1 +1,8 @@
 *.m~
+
+#ignore all the examples
+examples/*
+
+#except these ones
+examples/simulated_example_inspect_map.m
+examples/simulated_example_inspect_seg.m

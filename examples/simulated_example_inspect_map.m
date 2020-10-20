@@ -10,12 +10,8 @@ saveon=0;
 inspect_options.save=saveon;
 
 %noise level and type 
-SNR = 200;
+SNR = 400;
 noisetype = 'rician';
-
-disp('try simulating with the spectra')
-disp('check that the SNR matches up with S0')
-disp('try with S0=100 or so')
 
 
 %% Simulate volume fraction image.
@@ -24,7 +20,7 @@ disp('try with S0=100 or so')
 % the same volume fraction image
 
 %image dimension
-imgdim = [50 50 1];
+imgdim = [10 10 1];
 %define mask
 mask = ones(imgdim);
 %number of spectral components 
@@ -47,12 +43,12 @@ vfimg = vfimg./sum(vfimg,4);
 % Canonical spectral component values and MR acquisition 
 % parameters are based on those in: 
 %
-% Slator et al., Combined diffusion?relaxometry MRI to identify 
+% Slator et al., Combined diffusion-relaxometry MRI to identify 
 % dysfunction in the human placenta, MRM 2019.
 % https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27733
 %
 
-%load the placenta gradechoinv file
+%load the gradechoinv file
 gradechoinv_filename = 'inspect/examples/placenta_gradechoinv.txt';
 gradechoinv = load(gradechoinv_filename);
 
@@ -92,14 +88,104 @@ for x=1:imgdim(1) %loop over voxels
     end
 end
 
+simimgfixed = simimg;
+
+
+
+%% simulate with continuous canonical spectral components
+
+%define the canonical spectral components
+meand = [0.0002 0.003 0.05 0.2]; %ADC
+meant2 = [50 60 70 80]; %T2
+
+meanspectral_comp = [meand;meant2];
+
+vard = [0.000000002 0.0000003 0.00005 0.002];
+vart2 = [5 5 5 5];
+
+
+
+%spectral_comp = [d;t2];
+
+ncomp = length(meand);
+Fsim = cell(ncomp,1);
+
+%define the grid for the components to be defined on
+grid_options.mink = [2*10^-4  5];
+grid_options.maxk = [5  200];
+grid_options.Nk = [50 50];
+grid_options.loggrid = [1 0];
+grid_options.kernel='DT2';       
+grid_options.reg=0;
+
+grid = getkernelgrid(grid_options);
+allgridcombs = ( combvec(grid{:}) )';
+
+Fvec=cell(ncomp,1);
+for i=1:ncomp
+    Fvec{i} = mvnpdf(allgridcombs,meanspectral_comp(:,i)',[vard(i) 0; 0 vart2(i)]);
+end
+%normalise (on the discrete grid) so that spectra have same maximums
+for i=1:ncomp
+    Fvec{i} = Fvec{i}./sum(Fvec{i}(:));
+end
+%reshape vector to the correct dim
+F=cell(ncomp,1);
+for i=1:ncomp
+    F{i} = reshape(Fvec{i}, grid_options.Nk);
+end
+
+figure; hold on
+for i=1:ncomp
+    contour(grid{2},grid{1},F{i})    
+end
+set(gca, 'YScale', 'log');
+
+
+tic;
+%now simulate the image
+simimg = zeros([imgdim size(gradechoinv,1)]);%preallocate
+for x=1:imgdim(1) %loop over voxels
+    for y=1:imgdim(2)
+        for z=1:imgdim(3)            
+            %get volume fractions for this voxel
+            f = squeeze(vfimg(x,y,z,:)); 
+            %get the effective spectrum for this voxel
+            Fvox = construct_spectrum_from_components(F,f);                        
+            %normalise this spectrum
+            
+            
+            %simulate the signal using this spectrum   
+            S=simulate_spectrum_signal(Fvox,gradechoinv,grid_options); 
+            
+            %normalise
+            b0teminindex = 1;           
+            S=S./S(b0teminindex);
+            %add noise
+            S = add_noise(S,SNR,noisetype);
+            %scale
+            %S0=100;
+            %S=S*S0;
+            %assign to image
+            simimg(x,y,z,:) = S;
+        end
+    end
+end
+
+%S = simulate_spectrum_signal(F,gradechoinv,options,SNR)
+
+toc;
+
+
+
 
 
 %% set up everything for saving
 if saveon
     %where to save the figures
-    figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/simulations/';
-    figuredir = '/home/pslator/IPMI2019/simulations/';
-    
+    %figuredir = '/Users/paddyslator/Dropbox/PlacentaDocs/papers/inspect_map/miccai2020/simulations/';
+    %figuredir = '/home/pslator/IPMI2019/simulations/';
+    figuredir = pwd;
     
     %make a nice string for the directory
     dir_string = ['SNR_' num2str(SNR)];
@@ -150,18 +236,13 @@ inspect_options.ILT_mean.maxk = [5  200];
 
 inspect_options.maxiter = 5;
 
+inspect_options.sumto1 = 0;
+
 % fit inspect continuous version
-comps = 2:8;
-
-siminspectmap = cell(length(comps),1);
- 
-for i=1:length(comps)
-    inspect_options.ncomp = comps(i);
-    %siminspectmap{i} = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
-end
-
-
-
+comps = 4;
+inspect_options.ncomp = comps;
+     
+siminspectmap = inspect_map(simimg,gradechoinv,mask,'DT2',inspect_options);
 
 % fit voxelwise spectra and integrate in spectral ROIs to get
 % volume fraction maps
@@ -174,6 +255,7 @@ vox_options.sROI{2} = 10^3 * [0 0.055;0.055 0.065;0.065 0.075; 0.075 0.2];
 vox_options.ILT = inspect_options.ILT;
 vox_options.ILT.alpha=0.01;
 
+vox_options.save=saveon;
 
 if saveon
     vox_options.save_path = inspect_options.save_path;
@@ -184,42 +266,36 @@ end
 simvoxfit = inspect_vox(simimg,gradechoinv,mask,'DT2',vox_options);
 
 
+%%% plot the output %%%
+
+%unpack some output variables
+%spectral grid
+grid = siminspectmap.options.ILT.grid;
+%output spectra
+Fcomp = siminspectmap.iter{end}{end}.Fcomp;
+%output voxelwise spectral weights
+imgweights = siminspectmap.iter{end}{end}.imgweights;
+
+%plot the spectral components 
+for i=1:siminspectmap.options.ncomp
+    figure;hold on;
+    contour(grid{2},grid{1},Fcomp{i})
+    
+    plot(spectral_comp(2,i),spectral_comp(1,i),'rx')
+    title(['Component ' num2str(i)])
+    legend({'InSpect fit','Ground Truth'})
+    set(gca, 'YScale', 'log');
+    xlabel('T2* (s)')
+    ylabel('ADC (mm^2/s)')
+end
+
+%plot a comparison of the volume fraction maps
+plot_map_vs_vox_sim(siminspectmap,simvoxfit,vfimg);
+
 
 
 return
    
-% %%% plot the output %%%
-% 
-% %unpack some output variables
-% %spectral grid
-% grid = siminspectmap.options.ILT.grid;
-% %output spectra
-% Fcomp = siminspectmap.iter{end}{end}.Fcomp;
-% %output voxelwise spectral weights
-% imgweights = siminspectmap.iter{end}{end}.imgweights;
-% 
-% %plot the spectral components 
-% for i=1:siminspectmap.options.ncomp
-%     figure;hold on;
-%     contour(grid{2},grid{1},Fcomp{i})
-%     
-%     plot(spectral_comp(2,i),spectral_comp(1,i),'rx')
-%     title(['Component ' num2str(i)])
-%     legend({'InSpect fit','Ground Truth'})
-%     set(gca, 'YScale', 'log');
-%     xlabel('T2* (s)')
-%     ylabel('ADC (mm^2/s)')
-% end
-% 
-% %plot a comparison of the volume fraction maps
-% plot_map_vs_vox_sim(siminspectmap,simvoxfit,vfimg);
-
-
-
-
-
-
-
 
 
 
@@ -306,7 +382,7 @@ return
 
 %% T1-T2-D example
 
-%simulate ZEBRA brain type experiment (e.g. MUDI challenge
+% simulate ZEBRA brain type experiment (e.g. MUDI challenge
 % http://cmic.cs.ucl.ac.uk/cdmri/challenge.html)
 
 % gradechoinv_filename = 'inspect/examples/mudi_gradechoinv.txt';

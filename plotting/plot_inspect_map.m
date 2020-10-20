@@ -12,7 +12,6 @@ nimg = length(output.imgweights);
 
 
 
-
 for i=1:nimg  
     figure;
     
@@ -29,7 +28,7 @@ for i=1:nimg
         subplot(nrows,ncol,1 + ncol*(j-1));
         
         plot_multidim_spectrum(output.iter{end}{end}.Fcomp{j},...
-            output.ILT_mean.grid,...
+            output.options.ILT.grid,...
             output.options.kernel);
         
         ylabel(['Component ' num2str(j)])

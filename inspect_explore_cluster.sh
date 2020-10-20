@@ -101,14 +101,14 @@ inspect_explore_cluster(){
     
     #fit to all scans at once
     #modify file list into the correct input format for inspect_explore.m
-    allimgs=$(echo "${imgs[@]}")
-    allmasks=$(echo "${masks[@]}")
+    #allimgs=$(echo "${imgs[@]}")
+    #allmasks=$(echo "${masks[@]}")
     #put {" "} around the outside
-    allimgs="{\""$allimgs"\"}"
-    allmasks="{\""$allmasks"\"}"
+    #allimgs="{\""$allimgs"\"}"
+    #allmasks="{\""$allmasks"\"}"
     #replace all spaces with ","
-    allimgs=$(echo ${allimgs// /\",\"})
-    allmasks=$(echo ${allmasks// /\",\"})
+    #allimgs=$(echo ${allimgs// /\",\"})
+    #allmasks=$(echo ${allmasks// /\",\"})
 
     qsub /home/pslator/matlab_scripts/matlab.multicpufun inspect_explore $allimgs $gradechoinv $allmasks $kernel
     

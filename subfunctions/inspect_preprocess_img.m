@@ -9,11 +9,19 @@ function [img,imgfilename,mask,nimg,allimg,imgind,voxind,nvox,nx,ny,nz] = inspec
 
 %check if img is a path to a nifti file/files
 if ischar(img) || isstring(img) %single nifti file
-    imgfilename = char(img); %if string convert to character
-    img = niftiread(imgfilename); %load main image
-    img = double(img);
-elseif iscell(img)
-    if ischar(img{1}) || isstring(img{1}) %multiple nifti filenames      
+    imgfilename = char(img); %if string convert to character array
+    %check if there are any spaces in the character array - if so, assume
+    %that each space is separating a filename
+    if sum(isspace(imgfilename)) > 0 
+        %split into cell array
+        imgfilename=split(imgfilename);
+    else
+        img = niftiread(imgfilename); %load main image
+        img = double(img);
+    end
+end
+if iscell(img) || iscell(imgfilename)
+    if ischar(img{1}) || isstring(img{1}) %multiple nifti filenames in a cell      
         imgfilename = cellfun(@char,img,'UniformOutput',false); %make sure it's a character
         %total number of filenames provided - i.e. number of images
         nimg = length(img);
@@ -32,11 +40,19 @@ end
 
 %check if mask is a path to a nifti file
 if ischar(mask) || isstring(mask)
-    maskfilename = mask;
-    mask = niftiread(maskfilename); %load mask image
-    %make sure that the loaded mas is stored as double
-    mask = double(mask);
-elseif iscell(mask)
+    maskfilename = char(mask); %if string convert to character array
+    %check if there are any spaces in the character array - if so, assume
+    %that each space is separating a filename
+    if sum(isspace(maskfilename)) > 0 
+        %split into cell array
+        maskfilename=split(maskfilename);
+    else
+        mask = niftiread(maskfilename); %load main image
+        %make sure that the loaded mas is stored as double
+        mask = double(mask);
+    end
+end
+if iscell(mask) || iscell(maskfilename)
     if ischar(mask{1}) || isstring(mask{1}) %multiple nifti filenames
         maskfilenames = mask;
         %store the images in a cell

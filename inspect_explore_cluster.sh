@@ -84,16 +84,35 @@ inspect_explore_cluster(){
     echo $PATH
 
     #cluster version
-    for ((n=0; n<nimg; n++));
-    do
-        echo ${imgs[n]}
-	echo $gradechoinv
-	echo ${masks[n]} 
-	echo $kernel
-	echo inspect_explore
+    
+    
+    #fit to individual scans
+#    for ((n=0; n<nimg; n++));
+#    do
+#        echo ${imgs[n]}
+#	echo $gradechoinv
+#	echo ${masks[n]}
+#	echo $kernel
+#	echo inspect_explore
+#
+#        qsub /home/pslator/matlab_scripts/matlab.multicpufun inspect_explore ${imgs[n]} $gradechoinv ${masks[n]} $kernel
+#    done
+    
+    
+    #fit to all scans at once
+    #modify file list into the correct input format for inspect_explore.m
+    allimgs=$(echo "${imgs[@]}")
+    allmasks=$(echo "${masks[@]}")
+    #put {" "} around the outside
+    allimgs="{\""$allimgs"\"}"
+    allmasks="{\""$allmasks"\"}"
+    #replace all spaces with ","
+    allimgs=$(echo ${allimgs// /\",\"})
+    allmasks=$(echo ${allmasks// /\",\"})
 
-        qsub /home/pslator/matlab_scripts/matlab.multicpufun inspect_explore ${imgs[n]} $gradechoinv ${masks[n]} $kernel
-    done
+    qsub /home/pslator/matlab_scripts/matlab.multicpufun inspect_explore $allimgs $gradechoinv $allmasks $kernel
+    
+    
   
 
 

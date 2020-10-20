@@ -150,7 +150,7 @@ inspect_options.save_path = '/home/pslator/IPMI2019/';
 
 %max/min compartment numbers
 maxcomp = 10;
-mincomp = 6;
+mincomp = 2;
 
 
 %get unique diffusion scan and model to fit 

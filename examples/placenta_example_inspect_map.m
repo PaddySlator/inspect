@@ -1,8 +1,8 @@
 %%add everything to path
 addpath(genpath('dwi_placenta'))
 addpath(genpath('downloaded_packages'))
-addpath(genpath('MERA-ext'))
-
+addpath(genpath('MERA-ext/joint-spectrum-segmentation/utilities'))
+addpath(genpath('inspect'))
 
 %% load data
 
@@ -108,7 +108,7 @@ inspect_options.ILT = ILT_options;
 
 
 %number of compartments 
-inspect_options.n_comp = 4 ;
+inspect_options.ncomp = 6 ;
 
 inspect_options.maxiter = 5 ;
 inspect_options.init = 'random';
@@ -136,6 +136,13 @@ inspect_options.save_path = '/Users/paddyslator/Documents/PlacentaDocs/papers/in
 inspect_options.save_path = '/home/pslator/IPMI2019/'
 
 kernel = 'DT2';
+
+
+imgs
+gradechoinv
+masks
+kernel
+inspect_options
 
 % fit to all images at once
 placentainspectmap = inspect_map(imgs, gradechoinv,masks,kernel,inspect_options);

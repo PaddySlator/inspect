@@ -13,14 +13,14 @@ if ischar(img) || isstring(img) %single nifti file
     %check if there are any spaces in the character array - if so, assume
     %that each space is separating a filename
     if sum(isspace(imgfilename)) > 0 
-        %split into cell array
-        imgfilename=split(imgfilename);
+        %split into cell array for loading later
+        img=split(imgfilename);
     else
         img = niftiread(imgfilename); %load main image
         img = double(img);
     end
 end
-if iscell(img) || iscell(imgfilename)
+if iscell(img)
     if ischar(img{1}) || isstring(img{1}) %multiple nifti filenames in a cell      
         imgfilename = cellfun(@char,img,'UniformOutput',false); %make sure it's a character
         %total number of filenames provided - i.e. number of images
@@ -44,15 +44,15 @@ if ischar(mask) || isstring(mask)
     %check if there are any spaces in the character array - if so, assume
     %that each space is separating a filename
     if sum(isspace(maskfilename)) > 0 
-        %split into cell array
-        maskfilename=split(maskfilename);
+        %split into cell array for loading later
+        mask=split(maskfilename);
     else
         mask = niftiread(maskfilename); %load main image
         %make sure that the loaded mas is stored as double
         mask = double(mask);
     end
 end
-if iscell(mask) || iscell(maskfilename)
+if iscell(mask) 
     if ischar(mask{1}) || isstring(mask{1}) %multiple nifti filenames
         maskfilenames = mask;
         %store the images in a cell

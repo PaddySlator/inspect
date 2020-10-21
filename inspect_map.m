@@ -528,7 +528,12 @@ if onF
 
     if isfield(options,'save') %save the spectra as a mat file
         if options.save
-            save([options.save_path options.dirname '/spectra_' num2str(ncomp) '_comp_' strjoin(options.scan_names,'_')],'spectra');
+            try
+                save([options.save_path options.dirname '/spectra_' num2str(ncomp) '_comp_' strjoin(options.scan_names,'_')],'spectra');
+            catch
+                save([options.save_path options.dirname '/spectra_' num2str(ncomp) '_comp_' options.scan_names{1} '_and_more'],'spectra');
+                disp('filename was too long! check outputsummary.options.scan_names for scans')
+            end
         end
     end
     if relabel %relabel the imgweights
@@ -599,8 +604,13 @@ if isfield(options,'save')
     if options.save
         try
             save([options.save_path options.dirname '/outputsummary_' num2str(ncomp) '_comp_' strjoin(options.scan_names,'_')],'outputsummary');
-        catch %if the file is bigger than 2GB - not ideal but still save the output
-            save([options.save_path options.dirname '/outputsummary_' num2str(ncomp) '_comp_' strjoin(options.scan_names,'_')],'outputsummary','-v7.3');
+        catch %if filename too long
+            try
+                save([options.save_path options.dirname '/outputsummary_' num2str(ncomp) '_comp_' options.scan_names{1} '_and_more'],'outputsummary');
+                disp('filename was too long! check outputsummary.options.scan_names for scans')
+            catch %if the file is bigger than 2GB - not ideal but still save the output
+                save([options.save_path options.dirname '/outputsummary_' num2str(ncomp) '_comp_' strjoin(options.scan_names,'_')],'outputsummary','-v7.3');
+            end
         end
     end
 end

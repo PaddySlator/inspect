@@ -60,8 +60,17 @@ d = [0.0002 0.003 0.05 0.2]; %ADC
 t2 = [50 60 70 80]; %T2
 spectral_comp = [d;t2];
 
+
+%add a bit of voxel to voxel variation in the adc/t2* - can keep the figures the 
+%same just add an explanation and add these variances in the caption/text
+vard = [0.000000002 0.0000003 0.00005 0.002];
+vart2 = [5 5 5 5];
+
 %now simulate the image
-simimg = zeros([imgdim size(gradechoinv,1)]);%preallocate
+%preallocate some stuff
+simimg = zeros([imgdim size(gradechoinv,1)]);
+deff  = zeros([imgdim ncomp]);
+t2eff  = zeros([imgdim ncomp]);
 for x=1:imgdim(1) %loop over voxels
     for y=1:imgdim(2)
         for z=1:imgdim(3)            
@@ -69,9 +78,18 @@ for x=1:imgdim(1) %loop over voxels
             f = squeeze(vfimg(x,y,z,:)); 
             %simulate the signal by summing each component's signal   
             S=0;            
-            for i=1:length(f) %loop over components                     
-                %parameters for this component in this voxel
-                kernel.params = spectral_comp(:,i);
+            %add some variation in this voxel's adc/t2
+            spectral_comp_eff = spectral_comp + randn(2,ncomp) .* sqrt([vard; vart2]);
+            %make sure it's positive - 
+            if any(spectral_comp_eff) < 0
+               disp('negative adc or t2*!') 
+               %change any -ves to very small number
+               spectral_comp_eff = max(eps,spectral_comp_eff);
+            end
+            
+            for i=1:length(f) %loop over components                                        
+                %parameters for this component in this voxel                
+                kernel.params = spectral_comp_eff(:,i);
                 S = S + f(i) * KernelMeas(kernel,gradechoinv);                                                              
             end 
             %normalise
@@ -84,6 +102,10 @@ for x=1:imgdim(1) %loop over voxels
             %S=S*S0;
             %assign to image
             simimg(x,y,z,:) = S;
+            %save effective adc/t2* for this voxel
+            deff(x,y,z,:) = spectral_comp_eff(1,:);
+            t2eff(x,y,z,:) = spectral_comp_eff(2,:);
+            
         end
     end
 end
@@ -92,89 +114,89 @@ simimgfixed = simimg;
 
 
 
-%% simulate with continuous canonical spectral components
-
-%define the canonical spectral components
-meand = [0.0002 0.003 0.05 0.2]; %ADC
-meant2 = [50 60 70 80]; %T2
-
-meanspectral_comp = [meand;meant2];
-
-vard = [0.000000002 0.0000003 0.00005 0.002];
-vart2 = [5 5 5 5];
-
-
-
-%spectral_comp = [d;t2];
-
-ncomp = length(meand);
-Fsim = cell(ncomp,1);
-
-%define the grid for the components to be defined on
-grid_options.mink = [2*10^-4  5];
-grid_options.maxk = [5  200];
-grid_options.Nk = [50 50];
-grid_options.loggrid = [1 0];
-grid_options.kernel='DT2';       
-grid_options.reg=0;
-
-grid = getkernelgrid(grid_options);
-allgridcombs = ( combvec(grid{:}) )';
-
-Fvec=cell(ncomp,1);
-for i=1:ncomp
-    Fvec{i} = mvnpdf(allgridcombs,meanspectral_comp(:,i)',[vard(i) 0; 0 vart2(i)]);
-end
-%normalise (on the discrete grid) so that spectra have same maximums
-for i=1:ncomp
-    Fvec{i} = Fvec{i}./sum(Fvec{i}(:));
-end
-%reshape vector to the correct dim
-F=cell(ncomp,1);
-for i=1:ncomp
-    F{i} = reshape(Fvec{i}, grid_options.Nk);
-end
-
-figure; hold on
-for i=1:ncomp
-    contour(grid{2},grid{1},F{i})    
-end
-set(gca, 'YScale', 'log');
-
-
-tic;
-%now simulate the image
-simimg = zeros([imgdim size(gradechoinv,1)]);%preallocate
-for x=1:imgdim(1) %loop over voxels
-    for y=1:imgdim(2)
-        for z=1:imgdim(3)            
-            %get volume fractions for this voxel
-            f = squeeze(vfimg(x,y,z,:)); 
-            %get the effective spectrum for this voxel
-            Fvox = construct_spectrum_from_components(F,f);                        
-            %normalise this spectrum
-            
-            
-            %simulate the signal using this spectrum   
-            S=simulate_spectrum_signal(Fvox,gradechoinv,grid_options); 
-            
-            %normalise
-            b0teminindex = 1;           
-            S=S./S(b0teminindex);
-            %add noise
-            S = add_noise(S,SNR,noisetype);
-            %scale
-            %S0=100;
-            %S=S*S0;
-            %assign to image
-            simimg(x,y,z,:) = S;
-        end
-    end
-end
-
-%S = simulate_spectrum_signal(F,gradechoinv,options,SNR)
-
-toc;
+% %% simulate with continuous canonical spectral components
+% 
+% %define the canonical spectral components
+% meand = [0.0002 0.003 0.05 0.2]; %ADC
+% meant2 = [50 60 70 80]; %T2
+% 
+% meanspectral_comp = [meand;meant2];
+% 
+% vard = [0.000000002 0.0000003 0.00005 0.002];
+% vart2 = [5 5 5 5];
+% 
+% 
+% 
+% %spectral_comp = [d;t2];
+% 
+% ncomp = length(meand);
+% Fsim = cell(ncomp,1);
+% 
+% %define the grid for the components to be defined on
+% grid_options.mink = [2*10^-4  5];
+% grid_options.maxk = [5  200];
+% grid_options.Nk = [50 50];
+% grid_options.loggrid = [1 0];
+% grid_options.kernel='DT2';       
+% grid_options.reg=0;
+% 
+% grid = getkernelgrid(grid_options);
+% allgridcombs = ( combvec(grid{:}) )';
+% 
+% Fvec=cell(ncomp,1);
+% for i=1:ncomp
+%     Fvec{i} = mvnpdf(allgridcombs,meanspectral_comp(:,i)',[vard(i) 0; 0 vart2(i)]);
+% end
+% %normalise (on the discrete grid) so that spectra have same maximums
+% for i=1:ncomp
+%     Fvec{i} = Fvec{i}./sum(Fvec{i}(:));
+% end
+% %reshape vector to the correct dim
+% F=cell(ncomp,1);
+% for i=1:ncomp
+%     F{i} = reshape(Fvec{i}, grid_options.Nk);
+% end
+% 
+% figure; hold on
+% for i=1:ncomp
+%     contour(grid{2},grid{1},F{i})    
+% end
+% set(gca, 'YScale', 'log');
+% 
+% 
+% tic;
+% %now simulate the image
+% simimg = zeros([imgdim size(gradechoinv,1)]);%preallocate
+% for x=1:imgdim(1) %loop over voxels
+%     for y=1:imgdim(2)
+%         for z=1:imgdim(3)            
+%             %get volume fractions for this voxel
+%             f = squeeze(vfimg(x,y,z,:)); 
+%             %get the effective spectrum for this voxel
+%             Fvox = construct_spectrum_from_components(F,f);                        
+%             %normalise this spectrum
+%             
+%             
+%             %simulate the signal using this spectrum   
+%             S=simulate_spectrum_signal(Fvox,gradechoinv,grid_options); 
+%             
+%             %normalise
+%             b0teminindex = 1;           
+%             S=S./S(b0teminindex);
+%             %add noise
+%             S = add_noise(S,SNR,noisetype);
+%             %scale
+%             %S0=100;
+%             %S=S*S0;
+%             %assign to image
+%             simimg(x,y,z,:) = S;
+%         end
+%     end
+% end
+% 
+% %S = simulate_spectrum_signal(F,gradechoinv,options,SNR)
+% 
+% toc;
 
 
 
@@ -188,7 +210,7 @@ if saveon
     figuredir = pwd;
     
     %make a nice string for the directory
-    dir_string = ['continuous_spectra_SNR_' num2str(SNR)];
+    dir_string = ['/noisy_spectra_SNR_' num2str(SNR)];
     
     dir_string = [dir_string '_T2'];
     for i=1:length(t2)

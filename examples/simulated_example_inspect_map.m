@@ -10,7 +10,7 @@ saveon=1;
 inspect_options.save=saveon;
 
 %noise level and type 
-SNR = 50;
+SNR = 400;
 noisetype = 'rician';
 
 
@@ -65,6 +65,10 @@ spectral_comp = [d;t2];
 %same just add an explanation and add these variances in the caption/text
 vard = [0.000000002 0.0000003 0.00005 0.002];
 vart2 = [5 5 5 5];
+%set coefficient of variation as 10%
+coeffvar = 10;
+vard = (d./10).^2;
+vart2 = (t2./10).^2;
 
 %now simulate the image
 %preallocate some stuff
@@ -210,7 +214,7 @@ if saveon
     figuredir = pwd;
     
     %make a nice string for the directory
-    dir_string = ['/noisy_spectra_SNR_' num2str(SNR)];
+    dir_string = ['/noisy_spectra_SNR_' num2str(SNR) '_CV_' num2str(coeffvar)];
     
     dir_string = [dir_string '_T2'];
     for i=1:length(t2)

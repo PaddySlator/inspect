@@ -9,7 +9,7 @@ There are three main commands:
     * Reference: Slator, P. J. et al. InSpect: INtegrated SPECTral Component Estimation and Mapping for Multi-contrast Microstructural MRI. in IPMI 2019 755–766 (Springer, Cham, 2019). https://doi.org/10.1007/978-3-030-20351-1_59 
 * inspect_map.m
   * InSpect continuous mapping algorithm 
-    * Reference: Slator, P. J. et al. Data-Driven Multi-Contrast Spectral Microstructure Imaging with InSpect. in MICCAI 2020 (accepted).
+    * Reference: Slator, P. J. et al. Data-Driven Multi-Contrast Spectral Microstructure Imaging with InSpect: INtegrated SPECTral Component Estimation and Mapping. Medical Image Analysis (2021). https://doi.org/10.1016/j.media.2021.102045
 * inspect_vox.m
   * Implementation of standard voxelwise spectral estimation and calculation of apparent volume fractions with spectral integration (i.e. not my algorithm!).
     * Reference (the earliest I can find): English, A.E. et al. Quantitative Two-Dimensional time Correlation Relaxometry.  MRM 22(2), 425–434 (dec 1991). https://doi.org/10.1002/mrm.1910220250

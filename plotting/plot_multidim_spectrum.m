@@ -34,7 +34,7 @@ elseif ndim >= 3 %3D and above - need to plot projections
     plotdim = 2;
     
     %get the dimensions to plot
-    dim2plot = combntns(1:ndim,plotdim);
+    dim2plot = nchoosek(1:ndim,plotdim);
     
     %number of projections 
     nproj = size(dim2plot,1);

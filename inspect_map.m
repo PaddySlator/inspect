@@ -62,7 +62,7 @@ tic;
 
 %% extract the MR acqusition parameters 
 
-if ischar(gradechoinv)%check if gradechoinv is a path to a file
+if ischar(gradechoinv) || isstring(gradechoinv)%check if gradechoinv is a path to a file
     gradechoinvfilename = gradechoinv;
     gradechoinv = importdata(gradechoinvfilename);
 end

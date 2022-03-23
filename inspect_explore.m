@@ -1,4 +1,4 @@
-function output = inspect_explore(img,gradechoinv,mask,kernel,options)
+function output = inspect_explore(img,gradechoinv,mask,kernel,ncomp)
 
 %test different inspect models on one/a few scans 
 %INPUTS
@@ -17,9 +17,10 @@ function output = inspect_explore(img,gradechoinv,mask,kernel,options)
 
 
 %fit continuous inspect
-if nargin < 5
+if nargin < 5    
     output.map = inspect_map(img,gradechoinv,mask,kernel);
 else
+    options.map.ncomp = ncomp;
     output.map = inspect_map(img,gradechoinv,mask,kernel,options.map);
 end
 
@@ -28,15 +29,14 @@ end
 if nargin < 5
     output.seg = inspect_seg(img,gradechoinv,mask,kernel);
 else
+    options.seg.nclus = ncomp;
     output.seg = inspect_seg(img,gradechoinv,mask,kernel,options.seg);
 end
     
 %estimate voxelwise spectra and volume fraction estimation
-if nargin < 5 %no options specified
-    output.vox = inspect_vox(img,gradechoinv,mask,kernel);
-else
-    output.vox = inspect_vox(img,gradechoinv,mask,kernel,options.vox);
-end
+%just use default options
+output.vox = inspect_vox(img,gradechoinv,mask,kernel);
+
 
 
 

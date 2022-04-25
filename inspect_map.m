@@ -439,15 +439,20 @@ while k <= options.maxiter && ~converged
 
     %calculate the log-likelihood at the end of this iteration
     %augment the signal 
-    allimgaug = [allimg zeros(nvox, prod(Nk))];
+    %This is very memory heavy so have put in an option to remove! Can calculate post fit
+    %if necessary
+    calculatelogli = 1;
+    if calculatelogli
+        allimgaug = [allimg zeros(nvox, prod(Nk))];
     
-    [logli,RESNORM] = calculate_map_logli_all_voxels(allimg,allimgaug,Fcompvec,Kalpha,weights,gradechoinv,options);
+        [logli,RESNORM] = calculate_map_logli_all_voxels(allimg,allimgaug,Fcompvec,Kalpha,weights,gradechoinv,options);
 
-    iter{k}{end}.logli = logli;
-    iter{k}{end}.RESNORM = RESNORM;
+        iter{k}{end}.logli = logli;
+        iter{k}{end}.RESNORM = RESNORM;
 
-    stepwiselogli(k) = sum(logli);
-    stepwiseRESNORM(k) = RESNORM;
+        stepwiselogli(k) = sum(logli);
+        stepwiseRESNORM(k) = RESNORM;
+    end
 
 
     output.iter = iter;
@@ -558,18 +563,21 @@ if isfield(options,'save')
 end
 
 
-
-
-%calculate the AIC and BIC
-%number of model parameters
-%there are ncomp - 1 weight parameters in each voxel - since they sum to 1
-k = (ncomp - 1) * nvox + ncomp*( prod(Nk) );
-%sample size
-n = nvox * size(gradechoinv,1) ;
-LogLi = stepwiselogli(end);
-
-AIC = 2*k - 2*LogLi;
-BIC = k*log(n) - 2*LogLi;
+if calculatelogli 
+    %calculate the AIC and BIC
+    %number of model parameters
+    %there are ncomp - 1 weight parameters in each voxel - since they sum to 1
+    k = (ncomp - 1) * nvox + ncomp*( prod(Nk) );
+    %sample size
+    n = nvox * size(gradechoinv,1) ;
+    LogLi = stepwiselogli(end);
+    
+    AIC = 2*k - 2*LogLi;
+    BIC = k*log(n) - 2*LogLi;
+else
+    AIC = NaN;
+    BIC = NaN;
+end
 
 output.AIC = AIC;
 output.BIC = BIC;

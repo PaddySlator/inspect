@@ -136,7 +136,7 @@ parfor i=1:nvox
             weights(i,:) = fmincon(zoptfun,z0,[],[],[],[],lb,ub,[],fmincon_options);
         end
         
-        nupdate=1;%display an update for every nth voxel
+        nupdate=1000;%display an update for every nth voxel
         if mod(i,nupdate) == 0
             disp(['voxel ' num2str(i) ' of ' num2str(nvox)])
         end               

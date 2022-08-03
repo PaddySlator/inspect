@@ -60,7 +60,7 @@ end
 
 %kurtosis 
 min_grid.k=0;
-max_grid.k=1;
+max_grid.k=3;
 
 %T2
 TE = unique(TE);

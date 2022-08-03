@@ -171,6 +171,8 @@ output.voxILT = voxILT;
 
 output.spectra = spectra;
 
+output.voxind = voxind;
+
 output.kernel = kernel;
 output.options = options;
 

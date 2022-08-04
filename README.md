@@ -2,6 +2,11 @@
 
 Author: Paddy Slator (p.slator@ucl.ac.uk), Centre for Medical Image Computing, University College London 
 
+## Required Matlab toolboxes ##
+* Optimisation Toolbox
+* Deep Learning Toolbox
+* Image Processing Toolbox 
+
 ## Main Functions ##
 There are three main commands:
 * inspect_seg.m

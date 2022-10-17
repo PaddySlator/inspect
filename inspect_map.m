@@ -96,6 +96,26 @@ if options.save
 end
 
 
+%% if a sigma map is given as input, load it and extract the values in the mask
+if ischar(options.fixedsigma) || isstring(options.fixedsigma) || iscell(options.fixedsigma)
+    allsigma = inspect_preprocess_sigma_map(options.fixedsigma, mask);
+    options.fixedsigma = allsigma;
+    options.SNR = 'fixed';
+else %if no sigma map check if we will be able to estimate sigma 
+    disp('checking if we can estimate sigma')
+    [allsigma,S0] = estimate_sd(allimg,gradechoinv);
+
+    if isnan(allsigma)
+        allsigma = S0/options.fixedSNR;  
+        options.fixedsigma = allsigma;
+        options.SNR = 'fixed';        
+        disp('calculating sigma with the fixed SNR value: sigma = S0/fixedSNR')
+    else    
+        disp('will calculate sigma by taking standard deviation of signal at lowest acqusition values (b=0, min TE, etc)')
+    end
+end
+
+options
 
 
 %% unpack a few well-used options
@@ -204,7 +224,8 @@ elseif strcmp(options.init,'meanspectrum')
 
         %if there are not enough peaks - do something
         if length(peaks) < ncomp
-
+            contour(peaks{1})
+            length(peaks)
             %randomly combine the peaks to make new peaks
             disp('combining peaks to make new intial compartments')
             while length(peaks) < ncomp

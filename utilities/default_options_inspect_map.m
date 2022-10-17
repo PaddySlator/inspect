@@ -24,7 +24,9 @@ options.relabel = 1;
 options.SNR = 'voxelwise';
 %this is the default SNR value that will be used if cannot be estimated by
 %taking standard deviation
-options.fixedSNR = 100;
+options.fixedSNR = 50;
+%not using a fixed sigma map so set to NaN
+options.fixedsigma = NaN;
 %choose whether to normalise the volume fractions
 options.sumto1 = 1;
 

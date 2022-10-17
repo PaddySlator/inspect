@@ -76,11 +76,12 @@ if strcmp(options.SNR, 'voxelwise')
         disp(['Cannot estimate sigma voxelwise. Replacing with default SNR = ' num2str(options.fixedSNR)])
     end
 elseif strcmp(options.SNR,'fixed')
-    if isscalar(options.fixedSNR)
-        sigvec = ones(nvox,1) * (1/options.fixedSNR);
-    else
-        sigvec = 1./options.fixedSNR(:);
-    end
+    sigvec = options.fixedsigma;
+%     if isscalar(options.fixedSNR)
+%         sigvec = ones(nvox,1) * (1/options.fixedSNR);
+%     else
+%         sigvec = 1./options.fixedSNR(:);
+%     end
 end
 
 

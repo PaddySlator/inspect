@@ -46,6 +46,18 @@ bcoeff = 5;
 min_grid.d = (1/bcoeff) * 1/max(b);
 max_grid.d = bcoeff * 1/min(b);
 
+min_grid.dpar = (1/bcoeff) * 1/max(b);
+max_grid.dpar = bcoeff * 1/min(b);
+
+min_grid.dperp = (1/bcoeff) * 1/max(b);
+max_grid.dperp = bcoeff * 1/min(b);
+
+min_grid.d1 = (1/bcoeff) * 1/max(b);
+max_grid.d1 = bcoeff * 1/min(b);
+
+min_grid.d2 = (1/bcoeff) * 1/max(b);
+max_grid.d2 = bcoeff * 1/min(b);
+
 
 
 %min_grid.d = 2*10^-4;
@@ -108,6 +120,10 @@ end
 
 %Log-scale for d - e.g. diffusivity and pseudo-diffusivity
 logscale.d = 1;
+logscale.dpar = 1;
+logscale.dperp = 1;
+logscale.d1 = 1;
+logscale.d2 = 1;
 %linear scale for t1/t2 as these are typically not widely separated (at least
 %for the experiments/protocols thus far)
 logscale.t2 = 0;

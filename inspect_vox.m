@@ -132,7 +132,7 @@ spectvf = zeros([nvox nSROI]);
 
 spectra = cell(nvox,1);
 
-for i=1:nvox
+parfor i=1:nvox
     %calculate the spectra (takes up a lot of memory so replace each time)    
     voxILT = ILT(allimg(i,:),gradechoinv,options.ILT);
             
@@ -167,7 +167,7 @@ output.spectvf = spectvf;
 output.vfimg = vfimg;
 
 %save the ILT output for one voxel
-output.voxILT = voxILT;
+%output.voxILT = voxILT;
 
 output.spectra = spectra;
 

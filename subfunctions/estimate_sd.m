@@ -18,6 +18,7 @@ onTI = ~any(isnan(TI));
 %T2-decay, all volumes with TI > TIratio * TR for T1 inversion recovery.
 
 %set this - visual inspection suggests 0.5 is good for ZEBRA data
+%set this - 0.25 is good for muscle T1-T2 data
 TIratio = 0.5;
 
 try
@@ -28,14 +29,18 @@ try
         S0 = mean(img(:, b == min(b) & TE == min(TE))');
         sigma = std(img(:, b == min(b) & TE == min(TE))');
     elseif onb && ~onTE && onTI %T1-diffusion
-        S0 = mean(img(:, b == min(b) & TI > TIratio * TR)');
-        sigma = std(img(:, b == min(b) & TI > TIratio * TR)');
+%         S0 = mean(img(:, b == min(b) & TI > TIratio * TR)');
+%         sigma = std(img(:, b == min(b) & TI > TIratio * TR)');
+         S0 = mean(img(:, b == min(b) & TI == max(TI))');
+         sigma = std(img(:, b == min(b) & TI == max(TI))');
     elseif ~onb && onTE && onTI %T1-T2
-        S0 = mean(img(:, TE == min(TE) & TI > TIratio * TR)');
-        sigma = std(img(:, TE == min(TE) & TI > TIratio * TR)');
+%         S0 = mean(img(:, TE == min(TE) & TI > TIratio * TR)');
+%         sigma = std(img(:, TE == min(TE) & TI > TIratio * TR)');
+         S0 = mean(img(:, TE == min(TE) & TI == max(TI))');
+         sigma = std(img(:, TE == min(TE) & TI == max(TI))');
     elseif onb && onTE && onTI %T1-T2-diffusion
-        S0 = mean(img(:, b == min(b) & TE == min(TE) & TI > TIratio * TR)');
-        sigma = std(img(:, b == min(b) & TE == min(TE) & TI > TIratio * TR)');
+%         S0 = mean(img(:, b == min(b) & TE == min(TE) & TI > TIratio * TR)');
+%         sigma = std(img(:, b == min(b) & TE == min(TE) & TI > TIratio * TR)');
     end
 catch % if there are not enough to take the standard deviation
     sigma = NaN;

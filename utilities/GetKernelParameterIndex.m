@@ -1,6 +1,5 @@
 function paramindex = GetKernelParameterIndex(modelname,paramname)
 
-
 strings = GetKernelParameterStrings(modelname);
 
 for i=1:length(strings)

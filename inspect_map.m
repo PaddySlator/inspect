@@ -97,7 +97,9 @@ end
 
 
 %% if a sigma map is given as input, load it and extract the values in the mask
+options
 if ischar(options.fixedsigma) || isstring(options.fixedsigma) || iscell(options.fixedsigma)
+    disp('trying to load a sigma map')
     allsigma = inspect_preprocess_sigma_map(options.fixedsigma, mask);
     options.fixedsigma = allsigma;
     options.SNR = 'fixed';
@@ -110,12 +112,12 @@ else %if no sigma map check if we will be able to estimate sigma
         options.fixedsigma = allsigma;
         options.SNR = 'fixed';        
         disp('calculating sigma with the fixed SNR value: sigma = S0/fixedSNR')
-    else    
+    else   
+        options.SNR = 'voxelwise';
         disp('will calculate sigma by taking standard deviation of signal at lowest acqusition values (b=0, min TE, etc)')
     end
 end
 
-options
 
 
 %% unpack a few well-used options
@@ -219,6 +221,7 @@ elseif strcmp(options.init,'meanspectrum')
         %calculate spectrum on the overall mean signal
         meansig = mean(allimg);       
         ILT_mean = ILT(meansig,gradechoinv,options.ILT_mean);              
+        
         %identify the separated peaks in this, and use these as the intial spectra                         
         [peaks,peaksvec] = extract_components_from_spectrum(ILT_mean.F);
 
@@ -283,7 +286,7 @@ elseif strcmp(options.init,'meanspectrum')
     end
     initvals.Fcomp = Fcomp;
     initvals.Fcompvec = Fcompvec;   
-        
+          
     if onweights
         %initialise weights given initial spectra
         currentweights = []; %random starting points               

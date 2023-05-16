@@ -22,6 +22,8 @@ switch kernelname
         strings = {'dpar','dperp'};
     case 'PADT2'
         strings = {'dpar','dperp','t2'};
+    case 'T2T1'
+        strings = {'t2','t1'};
 end
         
                       
